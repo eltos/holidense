@@ -28,7 +28,6 @@ const countryList = document.getElementById("countryList");
 document.addEventListener("DOMContentLoaded", async () => {
 
   try {
-    populationData = await fetchPopulationData();
     populateYearSelect();
     renderCountrySelection();
     await updateCalendar();
@@ -59,12 +58,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 const tooltipElement = document.createElement("div");
 tooltipElement.className = "tooltip";
 document.body.appendChild(tooltipElement);
-
-async function fetchPopulationData() {
-  const res = await fetch("population.json");
-  if (!res.ok) throw new Error("Fehler beim Laden der Bevölkerungsdaten");
-  return await res.json();
-}
 
 // ------------------------------------------------------------
 // Dropdown für Jahr/Zeitraum vorbereiten
@@ -111,27 +104,36 @@ function renderCountrySelection() {
   });
 }
 
+async function fetchPopulationData() {
+  const res = await fetch("population.json");
+  if (!res.ok) throw new Error("Fehler beim Laden der Bevölkerungsdaten");
+  populationData = await res.json();
+}
+
 // ------------------------------------------------------------
 // Hole Ferien- und Feiertagsdaten aus der API
 async function fetchCountryData(year, countryCode) {
-  const urlFeiertage = `${API_BASE}/PublicHolidays?countryIsoCode=${countryCode}&validFrom=${year}-01-01&validTo=${year}-12-31&languageIsoCode=DE`;
-  const urlFerien = `${API_BASE}/SchoolHolidays?countryIsoCode=${countryCode}&validFrom=${year}-01-01&validTo=${year}-12-31&languageIsoCode=DE`;
+  const requests = [
+    fetch(`${API_BASE}/PublicHolidays?countryIsoCode=${countryCode}&validFrom=${year}-01-01&validTo=${year}-12-31&languageIsoCode=DE`),
+    fetch(`${API_BASE}/SchoolHolidays?countryIsoCode=${countryCode}&validFrom=${year}-01-01&validTo=${year}-12-31&languageIsoCode=DE`)
+  ];
 
-  const [holidaysRes, schoolRes] = await Promise.all([fetch(urlFeiertage), fetch(urlFerien)]);
-  if (!holidaysRes.ok || !schoolRes.ok)
-    throw new Error(`Fehler beim Abrufen der Daten für ${countryCode}`);
+  const responses = await Promise.all(requests);
+  if (responses.some(r => !r.ok)) {
+    throw new Error(`Fehler beim Abrufen der Daten für ${countryCode} für ${year}`);
+  }
+  const [holidays, schoolHolidays] = await Promise.all(responses.map(r => r.json()));
 
-  const holidays = await holidaysRes.json();
-  const schoolHolidays = await schoolRes.json();
   if (!(year in cachedData)) cachedData[year] = {};
   cachedData[year][countryCode] = {holidays, schoolHolidays};
 
-  if (!(countryCode in cachedData.Regions)) {
-    const RegionRes = await fetch(`${API_BASE}/Subdivisions?countryIsoCode=${countryCode}&languageIsoCode=DE`);
-    cachedData.Regions[countryCode] = await RegionRes.json();
-  }
-
 }
+
+async function fetchRegionData(countryCode) {
+  const RegionRes = await fetch(`${API_BASE}/Subdivisions?countryIsoCode=${countryCode}&languageIsoCode=DE`);
+  cachedData.Regions[countryCode] = await RegionRes.json();
+}
+
 
 // ------------------------------------------------------------
 // Aktualisiere Kalender
@@ -141,13 +143,15 @@ async function updateCalendar() {
   const toDate = new Date(toStr);
 
   // Lade Daten, falls noch nicht vorhanden
-  for (year of [fromDate.getFullYear(), toDate.getFullYear()]) {
-    await Promise.all(
-      selectedCountries.map(async (c) => {
-        if (!cachedData[year] || !cachedData[year][c]) await fetchCountryData(year, c);
-      })
-    );
+  const fetch = [];
+  if (!populationData) fetch.push(fetchPopulationData());
+  for (let country of selectedCountries) {
+    if (!cachedData.Regions[country]) fetch.push(fetchRegionData(country));
+    for (let year of [...new Set([fromDate.getFullYear(), toDate.getFullYear()])]) {
+      if (!cachedData[year] || !cachedData[year][country]) fetch.push(fetchCountryData(year, country));
+    }
   }
+  await Promise.all(fetch);
 
   // Daten aggregieren
   const dayStats = calculateDayStatistics(fromDate, toDate);
