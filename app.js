@@ -60,6 +60,41 @@ const tooltipElement = document.createElement("div");
 tooltipElement.className = "tooltip";
 document.body.appendChild(tooltipElement);
 
+function showTooltip(e, tooltip) {
+  tooltipElement.innerHTML = tooltip;
+
+  if (window.innerWidth < 1000) {
+    // better for smaller displays
+    tooltipElement.style.maxWidth = window.innerWidth * 2 / 3 + "px";
+    tooltipElement.style.left = e.pageX - tooltipElement.getBoundingClientRect().width * e.pageX / window.innerWidth + "px";
+  } else {
+    tooltipElement.style.maxWidth = window.innerWidth / 2 + "px";
+    if (e.pageX + 20 < window.innerWidth - tooltipElement.getBoundingClientRect().width) {
+      tooltipElement.style.left = e.pageX + 20 + "px";
+      tooltipElement.style.right = '';
+    } else {
+      tooltipElement.style.left = '';
+      tooltipElement.style.right = window.innerWidth - e.pageX + 20 + "px";
+    }
+  }
+  if (e.pageY + 20 < window.innerHeight - tooltipElement.getBoundingClientRect().height) {
+    tooltipElement.style.top = e.pageY + 20 + "px";
+    tooltipElement.style.bottom = '';
+  } else {
+    tooltipElement.style.top = '';
+    tooltipElement.style.bottom = window.innerHeight - e.pageY + 20 + "px";
+  }
+  tooltipElement.style.opacity = 1;
+}
+
+function registerTooptip(element, tooltip){
+  element.addEventListener("pointerover", e => showTooltip(e, tooltip));
+  element.addEventListener("pointerdown", e => showTooltip(e, tooltip));
+  element.addEventListener("pointermove", e => showTooltip(e, tooltip));
+  element.addEventListener("pointerout", () => (tooltipElement.style.opacity = 0));
+}
+
+
 // ------------------------------------------------------------
 // Dropdown für Jahr/Zeitraum vorbereiten
 function populateYearSelect() {
@@ -109,6 +144,12 @@ async function fetchPopulationData() {
   const res = await fetch("population.json");
   if (!res.ok) throw new Error("Fehler beim Laden der Bevölkerungsdaten");
   populationData = await res.json();
+
+  for (let element of document.getElementsByClassName("country-item")) {
+    const population = Object.values(populationData.countries[element.dataset.code].subdivisions).reduce((a, b) => a + b, 0);
+    registerTooptip(element, `<span class="tooltip-title">${(population / 1e6).toFixed(1)} Mio. Einwohner</span>\n`);
+  }
+
 }
 
 // ------------------------------------------------------------
@@ -319,28 +360,7 @@ function renderCalendar(fromDate, toDate, stats) {
         cell.style.fontWeight = stats[key].off ? "bold" : "regular";
 
         // tooltip
-        const show = (e) => {
-          tooltipElement.innerHTML = stats[key].tooltip;
-          tooltipElement.style.maxWidth = window.innerWidth / 2 + "px";
-          if (e.pageX + 10 < window.innerWidth - tooltipElement.getBoundingClientRect().width) {
-            tooltipElement.style.left = e.pageX + 10 + "px";
-            tooltipElement.style.right = '';
-          } else {
-            tooltipElement.style.left = '';
-            tooltipElement.style.right = window.innerWidth - e.pageX + 10 + "px";
-          }
-          if (e.pageY + 10 < window.innerHeight - tooltipElement.getBoundingClientRect().height) {
-            tooltipElement.style.top = e.pageY + 10 + "px";
-            tooltipElement.style.bottom = '';
-          } else {
-            tooltipElement.style.top = '';
-            tooltipElement.style.bottom = window.innerHeight - e.pageY + 10 + "px";
-          }
-          tooltipElement.style.opacity = 1;
-        };
-        cell.addEventListener("pointerover", show);
-        cell.addEventListener("pointerdown", show);
-        cell.addEventListener("pointerout", () => (tooltipElement.style.opacity = 0));
+        registerTooptip(cell, stats[key].tooltip);
 
       }
 
