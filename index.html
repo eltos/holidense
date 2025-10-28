@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>📅 Holidense: Feriendichte Kalender</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+<header>
+  <h1>Holidense: Feriendichte Kalender</h1>
+  <p>
+    Diese interaktive Übersicht zeigt für jeden Tag den Anteil der Bevölkerung,
+    der aufgrund von Schulferien oder Feiertagen in den ausgewählten Ländern
+    gerade Urlaub hat. Die Daten basieren auf der
+    <a href="https://openholidaysapi.org" target="_blank">OpenHolidays API</a>.
+  </p>
+</header>
+
+<section id="controls">
+  <select id="yearSelect"></select>
+  <div id="countryList"></div>
+</section>
+
+<main id="calendar">
+  Lade Daten...
+</main>
+
+<footer>
+  <p>
+    Gemacht mit ♥️ von Philipp<br/>
+    Open Source: <a href="https://github.com/eltos/holidense">github.com/eltos/holidense</a>
+  </p>
+  <p id="sourceInfo">
+  </p>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
