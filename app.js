@@ -10,7 +10,8 @@ const countries = [
   {code: "CH", name: "Schweiz", flag: "🇨🇭"},
   {code: "FR", name: "Frankreich", flag: "🇫🇷"},
   {code: "BE", name: "Belgien", flag: "🇧🇪"},
-  {code: "NL", name: "Niederlande", flag: "🇳🇱"}
+  {code: "NL", name: "Niederlande", flag: "🇳🇱"},
+  {code: "CZ", name: "Tschechien", flag: "🇨🇿"}
 ];
 let selectedCountries = ["DE"];
 

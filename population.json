@@ -115,6 +115,28 @@
         "NL-MI": 6309099,
         "NL-NO": 6416165
       }
+    },
+    "CZ": {
+      "name": "Tschechien",
+      "source": "City population",
+      "url": "https://www.citypopulation.de/de/czechrep/admin/",
+      "date": "2024-12-31",
+      "subdivisions": {
+        "CZ-JC": 653227,
+        "CZ-JM": 1229343,
+        "CZ-KA": 293192,
+        "CZ-KR": 555923,
+        "CZ-LI": 449494,
+        "CZ-MO": 1182613,
+        "CZ-OL": 631500,
+        "CZ-PA": 530469,
+        "CZ-PL": 614640,
+        "CZ-PR": 1397880,
+        "CZ-ST": 1466215,
+        "CZ-US": 808356,
+        "CZ-VY": 517647,
+        "CZ-ZL": 578998
+      }
     }
   }
 }
