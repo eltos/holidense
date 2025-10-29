@@ -1,3 +1,12 @@
+
+html[lang="de"] :lang(en) {
+  display: none !important;
+}
+
+html[lang="en"] :lang(de) {
+  display: none !important;
+}
+
 body {
   font-family: system-ui, Arial, sans-serif;
   margin: 0;
@@ -27,6 +36,10 @@ a {
   text-decoration: none;
 }
 
+header a {
+  color: #7fb6ff;
+}
+
 a:hover {
   text-decoration: underline;
 }
@@ -36,6 +49,18 @@ a:hover {
     position: sticky;
     top: 0;
   }
+}
+
+#languageSelector {
+  position: absolute;
+  right: 0;
+  top: 0;
+  margin: 10px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: #7fb6ff;
+  font-size: 1rem;
 }
 
 #controls, #countrySelect {
@@ -79,6 +104,10 @@ a:hover {
   width: 24px;
   height: 16px;
   border-radius: 2px;
+}
+
+.country-item:hover {
+  opacity: 1;
 }
 
 .country-item.active {

@@ -13,7 +13,16 @@ const countries = [
   {code: "NL", name: "Niederlande", flag: "🇳🇱"},
   {code: "CZ", name: "Tschechien", flag: "🇨🇿"}
 ];
-let selectedCountries = ["DE"];
+
+
+let selectedMonthRange = document.location.hash.split("#")[1] || null;
+let selectedCountries = document.location.hash.split("#")[2]?.split("+") || ["DE"];
+selectedCountries = [...new Set(selectedCountries).intersection(new Set(countries.map(c => c.code)))];
+let locale = document.location.hash.split("#")[3];
+
+function updateHash() {
+  document.location.hash = selectedMonthRange + "#" + selectedCountries.toSorted().join("+") + (locale !== "de" ? "#" + locale : "");
+}
 
 
 // ------------------------------------------------------------
@@ -21,22 +30,39 @@ let selectedCountries = ["DE"];
 const API_BASE = "https://openholidaysapi.org";
 let populationData = null;
 let cachedData = {Regions: {}};
+let i18n = {
+  publicHoliday: "Feiertag in",
+  schoolHoliday: "Ferien in",
+  noHoliday: "Keine Ferien/Feiertage",
+  in: "in",
+  nationwide: "landesweit",
+  mioResidents: "Mio. Einwohner",
+  dataSources: "Datenquellen"
+};
 
 const calendarContainer = document.getElementById("calendar");
 const sourceInfo = document.getElementById("sourceInfo");
 const yearSelect = document.getElementById("yearSelect");
 const countryList = document.getElementById("countryList");
+document.getElementById("languageSelector").onclick = async e => {
+  locale = locale === "de" ? "en" : "de";
+  updateHash()
+  document.location.reload();
+};
 document.addEventListener("DOMContentLoaded", async () => {
+
+  await i18ninit();
 
   try {
     populateYearSelect();
     renderCountrySelection();
     await updateCalendar();
   } catch (e) {
-    calendarContainer.innerHTML = e.message;
+    calendarContainer.innerHTML = e.message + `<br/><a href=".">Reload page</a>`;
+    throw e
   }
 
-  sourceInfo.append("Datenquellen: ")
+  sourceInfo.append(i18n.dataSources + ": ")
 
   function sourceLink(url, label) {
     let link = document.createElement("a");
@@ -87,7 +113,7 @@ function showTooltip(e, tooltip) {
   tooltipElement.style.opacity = 1;
 }
 
-function registerTooptip(element, tooltip){
+function registerTooptip(element, tooltip) {
   element.addEventListener("pointerover", e => showTooltip(e, tooltip));
   element.addEventListener("pointerdown", e => showTooltip(e, tooltip));
   element.addEventListener("pointermove", e => showTooltip(e, tooltip));
@@ -102,22 +128,28 @@ function populateYearSelect() {
   const currentYear = now.getFullYear();
   for (let y = currentYear - 1; y <= currentYear + 2; y++) {
     const optCal = document.createElement("option");
-    optCal.value = `${y}-01-01|${y}-12-31`;
+    optCal.value = `${y}-01~${y}-12`;
     optCal.textContent = `${y}`;
     yearSelect.appendChild(optCal);
 
     const optShifted = document.createElement("option");
-    optShifted.value = `${y}-07-01|${y + 1}-06-30`;
+    optShifted.value = `${y}-07~${y + 1}-06`;
     optShifted.textContent = `${y}/${(y + 1).toString().slice(-2)}`;
     yearSelect.appendChild(optShifted);
   }
-  yearSelect.value = now.getMonth() < 6 ? `${currentYear}-01-01|${currentYear}-12-31` : `${currentYear}-07-01|${currentYear + 1}-06-30`;
-  yearSelect.addEventListener("change", updateCalendar);
+  selectedMonthRange = selectedMonthRange || (now.getMonth() < 6 ? `${currentYear}-01~${currentYear}-12` : `${currentYear}-07~${currentYear + 1}-06`);
+  yearSelect.value = selectedMonthRange
+  yearSelect.addEventListener("change", async e => {
+    selectedMonthRange = e.currentTarget.value;
+    updateHash();
+    await updateCalendar();
+  });
 }
 
 // ------------------------------------------------------------
 // Länder-Auswahl rendern
 function renderCountrySelection() {
+  countryList.innerHTML = "";
   countries.forEach((c) => {
     const div = document.createElement("div");
     div.className = "country-item";
@@ -134,6 +166,7 @@ function renderCountrySelection() {
         selectedCountries.push(c.code);
         div.classList.add("active");
       }
+      updateHash();
       await updateCalendar();
     });
     countryList.appendChild(div);
@@ -142,12 +175,12 @@ function renderCountrySelection() {
 
 async function fetchPopulationData() {
   const res = await fetch("population.json");
-  if (!res.ok) throw new Error("Fehler beim Laden der Bevölkerungsdaten");
+  if (!res.ok) throw new Error("Error loading population data");
   populationData = await res.json();
 
   for (let element of document.getElementsByClassName("country-item")) {
     const population = Object.values(populationData.countries[element.dataset.code].subdivisions).reduce((a, b) => a + b, 0);
-    registerTooptip(element, `<span class="tooltip-title">${(population / 1e6).toFixed(1)} Mio. Einwohner</span>\n`);
+    registerTooptip(element, `<span class="tooltip-title">${(population / 1e6).toFixed(1)} ${i18n.mioResidents}</span>\n`);
   }
 
 }
@@ -156,13 +189,13 @@ async function fetchPopulationData() {
 // Hole Ferien- und Feiertagsdaten aus der API
 async function fetchCountryData(year, countryCode) {
   const requests = [
-    fetch(`${API_BASE}/PublicHolidays?countryIsoCode=${countryCode}&validFrom=${year}-01-01&validTo=${year}-12-31&languageIsoCode=DE`),
-    fetch(`${API_BASE}/SchoolHolidays?countryIsoCode=${countryCode}&validFrom=${year}-01-01&validTo=${year}-12-31&languageIsoCode=DE`)
+    fetch(`${API_BASE}/PublicHolidays?countryIsoCode=${countryCode}&validFrom=${year}-01-01&validTo=${year}-12-31&languageIsoCode=${locale.toUpperCase()}`),
+    fetch(`${API_BASE}/SchoolHolidays?countryIsoCode=${countryCode}&validFrom=${year}-01-01&validTo=${year}-12-31&languageIsoCode=${locale.toUpperCase()}`)
   ];
 
   const responses = await Promise.all(requests);
   if (responses.some(r => !r.ok)) {
-    throw new Error(`Fehler beim Abrufen der Daten für ${countryCode} für ${year}`);
+    throw new Error(`Error loading data of ${countryCode} for ${year}`);
   }
   const [holidays, schoolHolidays] = await Promise.all(responses.map(r => r.json()));
 
@@ -172,7 +205,7 @@ async function fetchCountryData(year, countryCode) {
 }
 
 async function fetchRegionData(countryCode) {
-  const RegionRes = await fetch(`${API_BASE}/Subdivisions?countryIsoCode=${countryCode}&languageIsoCode=DE`);
+  const RegionRes = await fetch(`${API_BASE}/Subdivisions?countryIsoCode=${countryCode}&languageIsoCode=${locale.toUpperCase()}`);
   cachedData.Regions[countryCode] = await RegionRes.json();
 }
 
@@ -180,9 +213,11 @@ async function fetchRegionData(countryCode) {
 // ------------------------------------------------------------
 // Aktualisiere Kalender
 async function updateCalendar() {
-  const [fromStr, toStr] = yearSelect.value.split("|");
+  const [fromStr, toStr] = selectedMonthRange.split("~");
   const fromDate = new Date(fromStr);
-  const toDate = new Date(toStr);
+  let toDate = new Date(toStr);
+  if (!fromDate || isNaN(fromDate) || !toDate || isNaN(toDate) || toDate < fromDate || toDate - fromDate > 2 * 365 * 24 * 60 * 60 * 1000)
+    throw Error("Invalid date range " + selectedMonthRange);
 
   // Lade Daten, falls noch nicht vorhanden
   const fetch = [];
@@ -196,8 +231,8 @@ async function updateCalendar() {
   await Promise.all(fetch);
 
   // Daten aggregieren
-  const dayStats = calculateDayStatistics(fromDate, toDate);
-  renderCalendar(fromDate, toDate, dayStats);
+  const stats = calculateDayStatistics(fromDate, toDate);
+  renderCalendar(stats);
 }
 
 // ------------------------------------------------------------
@@ -210,10 +245,13 @@ function calculateDayStatistics(fromDate, toDate) {
     return sum + Object.values(subs).reduce((a, b) => a + b, 0);
   }, 0);
 
+  fromDate.setDate(1)
+  toDate.setMonth(toDate.getMonth() + 1, 0)
   for (let d = new Date(fromDate); d <= new Date(toDate); d.setDate(d.getDate() + 1)) {
     d.setHours(0, 0, 0, 0);
-    const key = dateKey(d);
-    stats[key] = {share: 0, off: false, tooltip: []};
+    const [m, key] = dateKey(d);
+    if (!stats[m]) stats[m] = {};
+    stats[m][key] = {share: 0, off: false, tooltip: []};
 
     let holidayPopulationTotal = 0;
     let nationwideHolidayAnyCountry = false;
@@ -226,14 +264,14 @@ function calculateDayStatistics(fromDate, toDate) {
 
       // --- Feiertage ---
       for (const h of holidays) {
-        if (inDateRange(d, h.startDate, h.endDate)) relevant.push({...h, type: "Feiertag"});
+        if (inDateRange(d, h.startDate, h.endDate)) relevant.push({...h, type: i18n.publicHoliday});
       }
 
       // --- Ferien ---
       for (const f of schoolHolidays) {
         if (inDateRange(d, f.startDate, f.endDate, true)) relevant.push({
           ...f,
-          type: "Ferien"
+          type: i18n.schoolHoliday
         });
       }
 
@@ -251,7 +289,7 @@ function calculateDayStatistics(fromDate, toDate) {
         }
 
         if (r.nationwide) {
-          if (r.type === "Ferien") {
+          if (r.type === i18n.schoolHoliday) {
             nationwideSchoolHoliday = true;
           } else {
             nationwideHoliday = true;
@@ -283,23 +321,23 @@ function calculateDayStatistics(fromDate, toDate) {
       if (holidayPopulation > 0) {
         const c = countries.find(c => c.code === country);
         if (selectedCountries.length > 1) {
-          tooltip.push(`\n<span class="tooltip-country">${c.name}: ${(holidayPopulation / 1e6).toFixed(1)} Mio. (${(100 * holidayPopulation / countryPopTotal).toFixed(0)}%)</span>`);
+          tooltip.push(`\n<span class="tooltip-country">${c.name}: ${(holidayPopulation / 1e6).toFixed(1)} ${i18n.mioResidents} (${(100 * holidayPopulation / countryPopTotal).toFixed(0)}%)</span>`);
         }
         for (const [label, info] of Object.entries(infos)) {
           if (info.All || info.Subdivisions.size > 0) {
             //const divisionsText = [...info.Subdivisions].map((s) => s.split("-")[1]).toSorted().join(", ");
-            const divisionsText = "in " + [...info.Subdivisions].map((s) => regionNames[s]).toSorted().join(", ");
-            tooltip.push(`${label} <span class="tooltip-info">(${info.Type} ${info.All ? "landesweit" : divisionsText})</span>`)
+            const divisionsText = i18n.in + " " + [...info.Subdivisions].map((s) => regionNames[s]).toSorted().join(", ");
+            tooltip.push(`${label} <span class="tooltip-info">(${info.Type} ${info.All ? i18n.nationwide : divisionsText})</span>`)
           }
         }
       }
 
     }
-    const summary = `<span class="tooltip-title">${(holidayPopulationTotal / 1e6).toFixed(1)} Mio. Einwohner (${(100 * holidayPopulationTotal / totalPop).toFixed(0)}%)</span>\n`;
-    stats[key].tooltip = holidayPopulationTotal > 0 ? summary + tooltip.join("\n") : `<span class="tooltip-title">Keine Ferien/Feiertage</span>`;
+    const summary = `<span class="tooltip-title">${(holidayPopulationTotal / 1e6).toFixed(1)} ${i18n.mioResidents} (${(100 * holidayPopulationTotal / totalPop).toFixed(0)}%)</span>\n`;
+    stats[m][key].tooltip = holidayPopulationTotal > 0 ? summary + tooltip.join("\n") : `<span class="tooltip-title">${i18n.noHoliday}</span>`;
 
-    stats[key].off = nationwideHolidayAnyCountry || d.getDay() === 0; // Sunday
-    stats[key].share = holidayPopulationTotal / totalPop;
+    stats[m][key].off = nationwideHolidayAnyCountry || d.getDay() === 0; // Sunday
+    stats[m][key].share = holidayPopulationTotal / totalPop;
 
   }
 
@@ -312,18 +350,12 @@ function calculateDayStatistics(fromDate, toDate) {
 
 // ------------------------------------------------------------
 // Kalenderdarstellung
-function renderCalendar(fromDate, toDate, stats) {
+function renderCalendar(stats) {
   calendarContainer.innerHTML = "";
   tooltipElement.style.opacity = 0;
 
-  const startMonth = fromDate.getMonth();
-  const months = [];
-  for (let i = 0; i < 12; i++) {
-    const m = new Date(fromDate.getFullYear(), startMonth + i, 1);
-    months.push(m);
-  }
-
-  for (const monthDate of months) {
+  for (const month of Object.keys(stats)) {
+    const monthDate = new Date(month);
     const monthDiv = document.createElement("div");
     monthDiv.className = "month";
     const monthName = monthDate.toLocaleString("de-DE", {month: "long", year: "numeric"});
@@ -331,11 +363,13 @@ function renderCalendar(fromDate, toDate, stats) {
     const table = document.createElement("table");
 
     const headerRow = document.createElement("tr");
-    ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"].forEach((d) => {
-      const th = document.createElement("th");
-      th.textContent = d;
-      headerRow.appendChild(th);
-    });
+    Array.of(1, 2, 3, 4, 5, 6, 7).map(d => new Date(Date.UTC(2001, 0, d)))
+      .map(d => Intl.DateTimeFormat(locale, {weekday: "short"}).format(d))
+      .forEach((d) => {
+        const th = document.createElement("th");
+        th.textContent = d;
+        headerRow.appendChild(th);
+      });
     table.appendChild(headerRow);
 
     const firstDay = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
@@ -349,18 +383,19 @@ function renderCalendar(fromDate, toDate, stats) {
 
     for (let day = 1; day <= lastDay.getDate(); day++) {
       const date = new Date(monthDate.getFullYear(), monthDate.getMonth(), day);
-      const key = dateKey(date);
+      const [m, key] = dateKey(date);
+      const dayStat = stats[month][key]
       const cell = document.createElement("td");
       cell.textContent = day;
       cell.dataset.code = key;
 
-      if (stats[key]) {
-        const share = stats[key].share || 0;
+      if (dayStat) {
+        const share = dayStat.share || 0;
         cell.style.backgroundColor = densityColor(share);
-        cell.style.fontWeight = stats[key].off ? "bold" : "regular";
+        cell.style.fontWeight = dayStat.off ? "bold" : "regular";
 
         // tooltip
-        registerTooptip(cell, stats[key].tooltip);
+        registerTooptip(cell, dayStat.tooltip);
 
       }
 
@@ -381,7 +416,8 @@ function renderCalendar(fromDate, toDate, stats) {
 
 // ------------------------------------------------------------
 function dateKey(date) {
-  return new Date(date.getTime() - date.getTimezoneOffset() * 60 * 1000).toISOString().split("T")[0];
+  const key = new Date(date.getTime() - date.getTimezoneOffset() * 60 * 1000).toISOString().split("T")[0];
+  return [key.slice(0, 7), key]
 }
 
 function inDateRange(date, startDate, endDate, orAdjacentWeekend = false) {
@@ -408,3 +444,19 @@ function densityColor(factor) {
 
 }
 
+async function i18ninit() {
+  locale = (locale || navigator.language?.split("-")[0]).toLowerCase()
+  if (locale !== "de") locale = "en";
+  document.getElementsByTagName("html")[0].lang = locale;
+  countries.forEach(c => c.name = new Intl.DisplayNames([locale], {type: "region"}).of(c.code))
+  if (locale !== "de") {
+    const res = await fetch(`i18n/${locale}.json`);
+    if (!res.ok) throw new Error("Error loading localization data");
+    i18n = await res.json();
+    document.querySelectorAll('[data-i18n]').forEach(element => {
+      const key = element.getAttribute('data-i18n');
+      if (i18n[key]) element.innerHTML = i18n[key];
+    });
+  }
+
+}
