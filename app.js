@@ -93,24 +93,25 @@ function showTooltip(e, tooltip) {
     // better for smaller displays
     tooltipElement.style.maxWidth = window.innerWidth * 2 / 3 + "px";
     tooltipElement.style.left = e.pageX - tooltipElement.getBoundingClientRect().width * e.pageX / window.innerWidth + "px";
+    tooltipElement.style.right = '';
   } else {
-    tooltipElement.style.maxWidth = window.innerWidth / 2 + "px";
+    tooltipElement.style.maxWidth = window.innerWidth / 2 - 40 + "px";
     if (e.pageX + 20 < window.innerWidth - tooltipElement.getBoundingClientRect().width) {
-      tooltipElement.style.left = e.pageX + 20 + "px";
+      tooltipElement.style.left = e.pageX + 10 + "px";
       tooltipElement.style.right = '';
     } else {
       tooltipElement.style.left = '';
-      tooltipElement.style.right = window.innerWidth - e.pageX + 20 + "px";
+      tooltipElement.style.right = window.innerWidth - e.pageX + 10 + "px";
     }
   }
   if (e.pageY + 20 < window.innerHeight - tooltipElement.getBoundingClientRect().height) {
-    tooltipElement.style.top = e.pageY + 20 + "px";
+    tooltipElement.style.top = e.pageY + 10 + "px";
     tooltipElement.style.bottom = '';
   } else {
     tooltipElement.style.top = '';
-    tooltipElement.style.bottom = window.innerHeight - e.pageY + 20 + "px";
+    tooltipElement.style.bottom = window.innerHeight - e.pageY + 10 + "px";
   }
-  tooltipElement.style.opacity = 1;
+  tooltipElement.style.opacity = 0.95;
 }
 
 function registerTooptip(element, tooltip) {
