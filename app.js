@@ -31,12 +31,13 @@ const API_BASE = "https://openholidaysapi.org";
 let populationData = null;
 let cachedData = {Regions: {}};
 let i18n = {
-  publicHoliday: "Feiertag in",
-  schoolHoliday: "Ferien in",
+  publicHoliday: "Feiertag",
+  schoolHoliday: "Ferien",
   noHoliday: "Keine Ferien/Feiertage",
   in: "in",
   nationwide: "landesweit",
   mioResidents: "Mio. Einwohner",
+  incompleteData: "Unvollständige Datenbasis",
   dataSources: "Datenquellen"
 };
 
@@ -252,10 +253,11 @@ function calculateDayStatistics(fromDate, toDate) {
     d.setHours(0, 0, 0, 0);
     const [m, key] = dateKey(d);
     if (!stats[m]) stats[m] = {};
-    stats[m][key] = {share: 0, off: false, tooltip: []};
+    stats[m][key] = {share: 0, off: false, tooltip: [], incompleteData: false};
 
     let holidayPopulationTotal = 0;
     let nationwideHolidayAnyCountry = false;
+    let incompleteData = new Set();
     const tooltip = [];
 
     for (const country of selectedCountries) {
@@ -267,6 +269,7 @@ function calculateDayStatistics(fromDate, toDate) {
       for (const h of holidays) {
         if (inDateRange(d, h.startDate, h.endDate)) relevant.push({...h, type: i18n.publicHoliday});
       }
+      if (holidays.length === 0) incompleteData.add(country);
 
       // --- Ferien ---
       for (const f of schoolHolidays) {
@@ -275,6 +278,7 @@ function calculateDayStatistics(fromDate, toDate) {
           type: i18n.schoolHoliday
         });
       }
+      if (schoolHolidays.length === 0 || maxDate(schoolHolidays.map(f => f.endDate)) < d) incompleteData.add(country);
 
       // Count population on holiday
       const countryPop = populationData.countries[country].subdivisions;
@@ -334,11 +338,27 @@ function calculateDayStatistics(fromDate, toDate) {
       }
 
     }
-    const summary = `<span class="tooltip-title">${(holidayPopulationTotal / 1e6).toFixed(1)} ${i18n.mioResidents} (${(100 * holidayPopulationTotal / totalPop).toFixed(0)}%)</span>\n`;
-    stats[m][key].tooltip = holidayPopulationTotal > 0 ? summary + tooltip.join("\n") : `<span class="tooltip-title">${i18n.noHoliday}</span>`;
 
+    // Build tooltip text
+    let tooltipText = "";
+    if (holidayPopulationTotal > 0){
+      const summary = `<span class="tooltip-title">${(holidayPopulationTotal / 1e6).toFixed(1)} ${i18n.mioResidents} (${(100 * holidayPopulationTotal / totalPop).toFixed(0)}%)</span>\n`;
+      tooltipText += summary + tooltip.join("\n");
+    } else {
+      tooltipText += `<span class="tooltip-title">${i18n.noHoliday}</span>`;
+    }
+    if (incompleteData.size > 0) {
+      tooltipText += `\n\n<span class="warning">` + i18n.incompleteData
+      if (selectedCountries.length > 1){
+        tooltipText += ": " + [...incompleteData].map(code => countries.find(c => c.code === code).name).join(", ")
+      }
+      tooltipText += `</span>`;
+    }
+
+    stats[m][key].tooltip = tooltipText;
     stats[m][key].off = nationwideHolidayAnyCountry || d.getDay() === 0; // Sunday
     stats[m][key].share = holidayPopulationTotal / totalPop;
+    stats[m][key].incompleteData = incompleteData.size > 0;
 
   }
 
@@ -392,7 +412,11 @@ function renderCalendar(stats) {
 
       if (dayStat) {
         const share = dayStat.share || 0;
-        cell.style.backgroundColor = densityColor(share);
+        cell.style.background = densityColor(share);
+        if (dayStat.incompleteData) {
+          cell.style.background = `repeating-linear-gradient(-45deg, ${cell.style.background}, ${cell.style.background} 8px, transparent 8px, transparent 10px)`;
+          cell.style.opacity = 0.8;
+        }
         cell.style.fontWeight = dayStat.off ? "bold" : "regular";
 
         // tooltip
@@ -419,6 +443,10 @@ function renderCalendar(stats) {
 function dateKey(date) {
   const key = new Date(date.getTime() - date.getTimezoneOffset() * 60 * 1000).toISOString().split("T")[0];
   return [key.slice(0, 7), key]
+}
+
+function maxDate(dates){
+  return new Date(Math.max(...dates.map(s => new Date(s).getTime())));
 }
 
 function inDateRange(date, startDate, endDate, orAdjacentWeekend = false) {

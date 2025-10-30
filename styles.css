@@ -189,6 +189,11 @@ td[data-code]:hover {
   font-weight: bold;
 }
 
+.warning {
+  font-weight: bold;
+  color: #ffc60c;
+}
+
 footer {
   text-align: center;
   padding: 1rem;
