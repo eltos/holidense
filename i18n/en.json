@@ -9,5 +9,8 @@
   "nationwide": "national",
   "mioResidents": "M people",
   "incompleteData": "Incomplete data",
-  "dataSources": "Data sources"
+  "dataSources": "Data sources",
+  "share": "Share link",
+  "shareInfo": "Persistent link",
+  "copiedToClipboard": "was copied to the clipboard"
 }

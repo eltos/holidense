@@ -15,16 +15,6 @@ const countries = [
 ];
 
 
-let selectedMonthRange = document.location.hash.split("#")[1] || null;
-let selectedCountries = document.location.hash.split("#")[2]?.split("+") || ["DE"];
-selectedCountries = [...new Set(selectedCountries).intersection(new Set(countries.map(c => c.code)))];
-let locale = document.location.hash.split("#")[3];
-
-function updateHash() {
-  document.location.hash = selectedMonthRange + "#" + selectedCountries.toSorted().join("+") + (locale !== "de" ? "#" + locale : "");
-}
-
-
 // ------------------------------------------------------------
 // Initialisierung
 const API_BASE = "https://openholidaysapi.org";
@@ -38,18 +28,43 @@ let i18n = {
   nationwide: "landesweit",
   mioResidents: "Mio. Einwohner",
   incompleteData: "Unvollständige Datenbasis",
-  dataSources: "Datenquellen"
+  dataSources: "Datenquellen",
+  share: "Link teilen",
+  shareInfo: "Persistenter Link",
+  copiedToClipboard: "wurde in die Zwischenablage kopiert"
 };
+
+
+const url = new URL(location)
+let selectedMonthRange = url.searchParams.get("range");
+let selectedCountries = url.searchParams.get("countries")?.split("|") || ["DE"];
+selectedCountries = [...new Set(selectedCountries).intersection(new Set(countries.map(c => c.code)))];
+let locale = url.searchParams.get("lang") || "de";
+
 
 const calendarContainer = document.getElementById("calendar");
 const sourceInfo = document.getElementById("sourceInfo");
 const yearSelect = document.getElementById("yearSelect");
 const countryList = document.getElementById("countryList");
+const shareLinkButton = document.getElementById("shareLink");
+shareLinkButton.addEventListener("click", e => {
+  const url = new URL(location)
+  url.searchParams.set("range", selectedMonthRange)
+  url.searchParams.set("countries", selectedCountries.toSorted().join("|"));
+  url.searchParams.set('lang', locale);
+  navigator.clipboard.writeText(url.toString()).then(() =>
+    window.alert(i18n.shareInfo + " " + i18n.copiedToClipboard)
+  ).catch(() =>
+    window.prompt(i18n.shareInfo + ":", url.toString())
+  );
+})
 document.getElementById("languageSelector").onclick = async e => {
   locale = locale === "de" ? "en" : "de";
-  updateHash()
-  document.location.reload();
+  const url = new URL(location)
+  url.searchParams.set('lang', locale);
+  location.href = url.toString();
 };
+
 document.addEventListener("DOMContentLoaded", async () => {
 
   await i18ninit();
@@ -62,6 +77,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     calendarContainer.innerHTML = e.message + `<br/><a href=".">Reload page</a>`;
     throw e
   }
+
+  shareLinkButton.text = i18n.share
 
   sourceInfo.append(i18n.dataSources + ": ")
 
@@ -143,7 +160,6 @@ function populateYearSelect() {
   yearSelect.value = selectedMonthRange
   yearSelect.addEventListener("change", async e => {
     selectedMonthRange = e.currentTarget.value;
-    updateHash();
     await updateCalendar();
   });
 }
@@ -168,7 +184,6 @@ function renderCountrySelection() {
         selectedCountries.push(c.code);
         div.classList.add("active");
       }
-      updateHash();
       await updateCalendar();
     });
     countryList.appendChild(div);
