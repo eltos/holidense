@@ -327,6 +327,7 @@ function calculateDayStatistics(fromDate, toDate) {
             }
 
           });
+          if (regions.every(r => !countryPop[r])) incompleteData.add(country);
 
         }
       }
