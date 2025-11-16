@@ -319,9 +319,9 @@ function calculateDayStatistics(fromDate, toDate) {
         } else if (r.subdivisions) {
           const regions = r.subdivisions.map(s => s.code.split("-").slice(0, 2).join("-"))
           regions.forEach(code => {
+            infos[label].Subdivisions.add(code);
             if (countryPop[code]) {
-              holidayRegions.add(code);
-              infos[label].Subdivisions.add(code);
+              holidayRegions.add(code)
             } else {
               missingRegions.add(code)
             }
@@ -347,7 +347,7 @@ function calculateDayStatistics(fromDate, toDate) {
         for (const [label, info] of Object.entries(infos)) {
           if (info.All || info.Subdivisions.size > 0) {
             //const divisionsText = [...info.Subdivisions].map((s) => s.split("-")[1]).toSorted().join(", ");
-            const divisionsText = i18n.in + " " + [...info.Subdivisions].map((s) => regionNames[s]).toSorted().join(", ");
+            const divisionsText = i18n.in + " " + [...info.Subdivisions].map((s) => regionNames[s] || s).toSorted().join(", ");
             tooltip.push(`${label} <span class="tooltip-info">(${info.Type} ${info.All ? i18n.nationwide : divisionsText})</span>`)
           }
         }
