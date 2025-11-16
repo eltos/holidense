@@ -196,7 +196,7 @@ async function fetchPopulationData() {
   populationData = await res.json();
 
   for (let element of document.getElementsByClassName("country-item")) {
-    const population = Object.values(populationData.countries[element.dataset.code].subdivisions).reduce((a, b) => a + b, 0);
+    const population = Object.values(regions(populationData.countries[element.dataset.code])).reduce((a, b) => a + b, 0);
     registerTooptip(element, `<span class="tooltip-title">${(population / 1e6).toFixed(1)} ${i18n.mioResidents}</span>\n`);
   }
 
@@ -209,7 +209,6 @@ async function fetchCountryData(year, countryCode) {
     fetch(`${API_BASE}/PublicHolidays?countryIsoCode=${countryCode}&validFrom=${year}-01-01&validTo=${year}-12-31&languageIsoCode=${locale.toUpperCase()}`),
     fetch(`${API_BASE}/SchoolHolidays?countryIsoCode=${countryCode}&validFrom=${year}-01-01&validTo=${year}-12-31&languageIsoCode=${locale.toUpperCase()}`)
   ];
-
   const responses = await Promise.all(requests);
   if (responses.some(r => !r.ok)) {
     throw new Error(`Error loading data of ${countryCode} for ${year}`);
@@ -222,8 +221,17 @@ async function fetchCountryData(year, countryCode) {
 }
 
 async function fetchRegionData(countryCode) {
-  const RegionRes = await fetch(`${API_BASE}/Subdivisions?countryIsoCode=${countryCode}&languageIsoCode=${locale.toUpperCase()}`);
-  cachedData.Regions[countryCode] = await RegionRes.json();
+  const requests = [
+    fetch(`${API_BASE}/Subdivisions?countryIsoCode=${countryCode}&languageIsoCode=${locale.toUpperCase()}`),
+    fetch(`${API_BASE}/Groups?countryIsoCode=${countryCode}&languageIsoCode=${locale.toUpperCase()}`)
+  ];
+  const responses = await Promise.all(requests);
+  if (responses.some(r => !r.ok)) {
+    throw new Error(`Error loading region data of ${countryCode}`);
+  }
+  const [subdivision, groups] = await Promise.all(responses.map(r => r.json()));
+
+  cachedData.Regions[countryCode] = [...subdivision, ...groups];
 }
 
 
@@ -258,7 +266,7 @@ function calculateDayStatistics(fromDate, toDate) {
   stats = {};
   const missingRegions = new Set();
   const totalPop = selectedCountries.reduce((sum, c) => {
-    const subs = populationData.countries[c].subdivisions;
+    const subs = regions(populationData.countries[c]);
     return sum + Object.values(subs).reduce((a, b) => a + b, 0);
   }, 0);
 
@@ -296,7 +304,7 @@ function calculateDayStatistics(fromDate, toDate) {
       if (schoolHolidays.length === 0 || maxDate(schoolHolidays.map(f => f.endDate)) < d) incompleteData.add(country);
 
       // Count population on holiday
-      const countryPop = populationData.countries[country].subdivisions;
+      const population = regions(populationData.countries[country]);
       let holidayRegions = new Set();
       let nationwideHoliday = false;
       let nationwideSchoolHoliday = false;
@@ -305,7 +313,7 @@ function calculateDayStatistics(fromDate, toDate) {
       for (const r of relevant) {
         const label = r.name?.[0]?.text || "Unbenannt";
         if (!(label in infos)) {
-          infos[label] = {Type: r.type, Subdivisions: new Set(), All: false}
+          infos[label] = {Type: r.type, Regions: new Set(), All: false}
         }
 
         if (r.nationwide) {
@@ -316,25 +324,22 @@ function calculateDayStatistics(fromDate, toDate) {
           }
           infos[label].All = true;
 
-        } else if (r.subdivisions) {
-          const regions = r.subdivisions.map(s => s.code.split("-").slice(0, 2).join("-"))
-          regions.forEach(code => {
-            infos[label].Subdivisions.add(code);
-            if (countryPop[code]) {
-              holidayRegions.add(code)
+        } else if (regions(r)) {
+          regions(r).map(s => s.code.split("-").slice(0, 2).join("-")).forEach(region => {
+            if (population[region]) {
+              infos[label].Regions.add(region);
+              holidayRegions.add(region)
             } else {
-              missingRegions.add(code)
+              missingRegions.add(region)
             }
 
           });
-          if (regions.every(r => !countryPop[r])) incompleteData.add(country);
 
         }
       }
 
-
-      const countryPopTotal = Object.values(countryPop).reduce((a, b) => a + b, 0);
-      const holidayPopulation = (nationwideHoliday || nationwideSchoolHoliday) ? countryPopTotal : [...holidayRegions].map(c => countryPop[c]).reduce((a, b) => a + b, 0);
+      const countryPopTotal = Object.values(population).reduce((a, b) => a + b, 0);
+      const holidayPopulation = (nationwideHoliday || nationwideSchoolHoliday) ? countryPopTotal : [...holidayRegions].map(c => population[c]).reduce((a, b) => a + b, 0);
       holidayPopulationTotal += holidayPopulation;
       nationwideHolidayAnyCountry |= nationwideHoliday;
 
@@ -345,9 +350,9 @@ function calculateDayStatistics(fromDate, toDate) {
           tooltip.push(`\n<span class="tooltip-country">${c.name}: ${(holidayPopulation / 1e6).toFixed(1)} ${i18n.mioResidents} (${(100 * holidayPopulation / countryPopTotal).toFixed(0)}%)</span>`);
         }
         for (const [label, info] of Object.entries(infos)) {
-          if (info.All || info.Subdivisions.size > 0) {
-            //const divisionsText = [...info.Subdivisions].map((s) => s.split("-")[1]).toSorted().join(", ");
-            const divisionsText = i18n.in + " " + [...info.Subdivisions].map((s) => regionNames[s] || s).toSorted().join(", ");
+          if (info.All || info.Regions.size > 0) {
+            //const divisionsText = [...info.Regions].map((s) => s.split("-")[1]).toSorted().join(", ");
+            const divisionsText = i18n.in + " " + [...info.Regions].map((s) => regionNames[s] || s).toSorted().join(", ");
             tooltip.push(`${label} <span class="tooltip-info">(${info.Type} ${info.All ? i18n.nationwide : divisionsText})</span>`)
           }
         }
@@ -463,6 +468,15 @@ function dateKey(date) {
 
 function maxDate(dates){
   return new Date(Math.max(...dates.map(s => new Date(s).getTime())));
+}
+
+function regions(data){
+  if (data.subdivisions === undefined) return data.groups
+  if (data.groups === undefined) return data.subdivisions
+  if (Array.isArray(data.subdivisions) && Array.isArray(data.groups)) {
+    return [...data.subdivisions, ...data.groups];
+  }
+  return { ...data.subdivisions, ...data.groups };
 }
 
 function inDateRange(date, startDate, endDate, orAdjacentWeekend = false) {

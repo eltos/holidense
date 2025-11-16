@@ -99,7 +99,7 @@
     "BE": {
       "name": "Belgien",
       "note": "Various sources",
-      "subdivisions": {
+      "groups": {
         "BE-DE": 79479,
         "BE-FR": 4200000,
         "BE-NL": 6509894
@@ -110,7 +110,7 @@
       "source": "City population",
       "url": "https://www.citypopulation.de/de/netherlands/admin/",
       "date": "2025-01-01",
-      "subdivisions": {
+      "groups": {
         "NL-ZU": 5170150,
         "NL-MI": 6309099,
         "NL-NO": 6416165
