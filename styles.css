@@ -124,6 +124,15 @@ a:hover {
   border-color: #2196f3;
 }
 
+#errorbar {
+  margin: 1rem;
+  padding: 1rem;
+  display: none;
+  font-family: monospace;
+  border-radius: 1rem;
+  background-color: LightCoral;
+}
+
 #calendar {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -230,6 +239,10 @@ footer {
 
   a {
     color: #7fb6ff;
+  }
+
+  #errorbar {
+    background: DarkRed;
   }
 
   #controls, #countrySelect {

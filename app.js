@@ -43,6 +43,7 @@ let locale = url.searchParams.get("lang") || "de";
 
 
 const calendarContainer = document.getElementById("calendar");
+const errorBar = document.getElementById("errorbar");
 const sourceInfo = document.getElementById("sourceInfo");
 const yearSelect = document.getElementById("yearSelect");
 const countryList = document.getElementById("countryList");
@@ -74,9 +75,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderCountrySelection();
     await updateCalendar();
   } catch (e) {
-    calendarContainer.innerHTML = e.message + `<br/><a href=".">Reload page</a>`;
+    errorBar.innerHTML = "Error: " + e.message + `<br/><a href=".">Reload page</a>`;
+    errorBar.style.display = "block";
     throw e
   }
+  errorBar.style.display = "none";
 
   shareLinkButton.text = i18n.share
 
@@ -238,26 +241,35 @@ async function fetchRegionData(countryCode) {
 // ------------------------------------------------------------
 // Aktualisiere Kalender
 async function updateCalendar() {
-  const [fromStr, toStr] = selectedMonthRange.split("~");
-  const fromDate = new Date(fromStr);
-  let toDate = new Date(toStr);
-  if (!fromDate || isNaN(fromDate) || !toDate || isNaN(toDate) || toDate < fromDate || toDate - fromDate > 2 * 365 * 24 * 60 * 60 * 1000)
-    throw Error("Invalid date range " + selectedMonthRange);
+  try {
+    const [fromStr, toStr] = selectedMonthRange.split("~");
+    const fromDate = new Date(fromStr);
+    let toDate = new Date(toStr);
+    if (!fromDate || isNaN(fromDate) || !toDate || isNaN(toDate) || toDate < fromDate || toDate - fromDate > 2 * 365 * 24 * 60 * 60 * 1000)
+      throw Error("Invalid date range " + selectedMonthRange);
 
-  // Lade Daten, falls noch nicht vorhanden
-  const fetch = [];
-  if (!populationData) fetch.push(fetchPopulationData());
-  for (let country of selectedCountries) {
-    if (!cachedData.Regions[country]) fetch.push(fetchRegionData(country));
-    for (let year of [...new Set([fromDate.getFullYear(), toDate.getFullYear()])]) {
-      if (!cachedData[year] || !cachedData[year][country]) fetch.push(fetchCountryData(year, country));
+    // Lade Daten, falls noch nicht vorhanden
+    const fetch = [];
+    if (!populationData) fetch.push(fetchPopulationData());
+    for (let country of selectedCountries) {
+      if (!cachedData.Regions[country]) fetch.push(fetchRegionData(country));
+      for (let year of [...new Set([fromDate.getFullYear(), toDate.getFullYear()])]) {
+        if (!cachedData[year] || !cachedData[year][country]) fetch.push(fetchCountryData(year, country));
+      }
     }
-  }
-  await Promise.all(fetch);
+    await Promise.all(fetch);
 
-  // Daten aggregieren
-  const stats = calculateDayStatistics(fromDate, toDate);
-  renderCalendar(stats);
+    // Daten aggregieren
+    const stats = calculateDayStatistics(fromDate, toDate);
+    renderCalendar(stats);
+
+  } catch (e) {
+    errorBar.innerHTML = "Error: " + e.message + `<br/><a href=".">Reload page</a>`;
+    errorBar.style.display = "block";
+    throw e
+  }
+  errorBar.style.display = "none";
+
 }
 
 // ------------------------------------------------------------
