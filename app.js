@@ -200,7 +200,7 @@ async function fetchPopulationData() {
 
   for (let element of document.getElementsByClassName("country-item")) {
     const population = Object.values(regions(populationData.countries[element.dataset.code])).reduce((a, b) => a + b, 0);
-    registerTooptip(element, `<span class="tooltip-title">${(population / 1e6).toFixed(1)} ${i18n.mioResidents}</span>\n`);
+    registerTooptip(element, `<span class="tooltip-title">${formatPopulation(population)}</span>\n`);
   }
 
 }
@@ -293,10 +293,12 @@ function calculateDayStatistics(fromDate, toDate) {
     let holidayPopulationTotal = 0;
     let nationwideHolidayAnyCountry = false;
     let incompleteData = new Set();
+    let incompleteDataPopulation = 0;
     const tooltip = [];
 
     for (const country of selectedCountries) {
       const {holidays, schoolHolidays} = cachedData[d.getFullYear()][country];
+      const countryName = countries.find(c => c.code === country)?.name;
       const regionNames = cachedData.Regions[country].reduce((d, e) => (d[e.code] = e.name?.[0]?.text, d), {});
       const relevant = [];
 
@@ -304,7 +306,6 @@ function calculateDayStatistics(fromDate, toDate) {
       for (const h of holidays) {
         if (inDateRange(d, h.startDate, h.endDate)) relevant.push({...h, type: i18n.publicHoliday});
       }
-      if (holidays.length === 0) incompleteData.add(country);
 
       // --- Ferien ---
       for (const f of schoolHolidays) {
@@ -313,7 +314,6 @@ function calculateDayStatistics(fromDate, toDate) {
           type: i18n.schoolHoliday
         });
       }
-      if (schoolHolidays.length === 0 || maxDate(schoolHolidays.map(f => f.endDate)) < d) incompleteData.add(country);
 
       // Count population on holiday
       const population = regions(populationData.countries[country]);
@@ -355,11 +355,28 @@ function calculateDayStatistics(fromDate, toDate) {
       holidayPopulationTotal += holidayPopulation;
       nationwideHolidayAnyCountry |= nationwideHoliday;
 
+
+      // Check for incomplete data
+      if (holidays.length === 0 || schoolHolidays.length === 0 || maxDate(schoolHolidays.map(f => f.endDate)) < d) {
+        incompleteData.add(countryName);
+        incompleteDataPopulation += countryPopTotal;
+      } else {
+        // Also check if school holidays are missing completely for any region
+        let missing = Object.keys(regions(populationData.countries[country])).filter(region => {
+          const regionHolidays = schoolHolidays.filter(h => h.nationwide || regions(h)?.map(s => s.code.split("-").slice(0, 2).join("-")).includes(region));
+          return regionHolidays.length === 0 || maxDate(regionHolidays.map(f => f.endDate)) < d;
+        });
+        if (missing.length > 0) {
+          incompleteData.add(countryName + " (" + missing.map(r => regionNames[r]).join(", ") + ")")
+          incompleteDataPopulation += missing.map(r => population[r]).reduce((a, b) => a + b, 0);
+        }
+      }
+
       // infos for tooltip
       if (holidayPopulation > 0) {
         const c = countries.find(c => c.code === country);
         if (selectedCountries.length > 1) {
-          tooltip.push(`\n<span class="tooltip-country">${c.name}: ${(holidayPopulation / 1e6).toFixed(1)} ${i18n.mioResidents} (${(100 * holidayPopulation / countryPopTotal).toFixed(0)}%)</span>`);
+          tooltip.push(`\n<span class="tooltip-country">${c.name}: ${formatPopulation(holidayPopulation, countryPopTotal)}</span>`);
         }
         for (const [label, info] of Object.entries(infos)) {
           if (info.All || info.Regions.size > 0) {
@@ -375,23 +392,20 @@ function calculateDayStatistics(fromDate, toDate) {
     // Build tooltip text
     let tooltipText = "";
     if (holidayPopulationTotal > 0){
-      const summary = `<span class="tooltip-title">${(holidayPopulationTotal / 1e6).toFixed(1)} ${i18n.mioResidents} (${(100 * holidayPopulationTotal / totalPop).toFixed(0)}%)</span>\n`;
+      const summary = `<span class="tooltip-title">${formatPopulation(holidayPopulationTotal, totalPop)}</span>\n`;
       tooltipText += summary + tooltip.join("\n");
     } else {
       tooltipText += `<span class="tooltip-title">${i18n.noHoliday}</span>`;
     }
     if (incompleteData.size > 0) {
-      tooltipText += `\n\n<span class="warning">` + i18n.incompleteData
-      if (selectedCountries.length > 1){
-        tooltipText += ": " + [...incompleteData].map(code => countries.find(c => c.code === code).name).join(", ")
-      }
-      tooltipText += `</span>`;
+      tooltipText += `\n\n<span class="warning warning-title">${i18n.incompleteData}: ${formatPopulation(incompleteDataPopulation, totalPop)}</span>`
+      tooltipText += `\n<span class="warning">${[...incompleteData].join(", ")}</span>`;
     }
 
     stats[m][key].tooltip = tooltipText;
     stats[m][key].off = nationwideHolidayAnyCountry || d.getDay() === 0; // Sunday
     stats[m][key].share = holidayPopulationTotal / totalPop;
-    stats[m][key].incompleteData = incompleteData.size > 0;
+    stats[m][key].incompleteData = incompleteDataPopulation / totalPop >= 0.05; // Highlight if error above 5%
 
   }
 
@@ -489,6 +503,12 @@ function regions(data){
     return [...data.subdivisions, ...data.groups];
   }
   return { ...data.subdivisions, ...data.groups };
+}
+
+function formatPopulation(number, total=undefined){
+  let result = `${(number / 1e6).toFixed(1)} ${i18n.mioResidents}`
+  if (total !== undefined) result += ` (${(100 * number / total).toFixed(0)}%)`;
+  return result;
 }
 
 function inDateRange(date, startDate, endDate, orAdjacentWeekend = false) {

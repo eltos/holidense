@@ -207,8 +207,10 @@ td[data-code]:hover {
 }
 
 .warning {
-  font-weight: bold;
   color: #ffc60c;
+}
+.warning-title {
+  font-weight: bold;
 }
 
 footer {
