@@ -317,7 +317,7 @@ function calculateDayStatistics(fromDate, toDate) {
 
       // Count population on holiday
       const population = regions(populationData.countries[country]);
-      let holidayRegions = new Set();
+      let regionsOnHoliday = new Set();
       let nationwideHoliday = false;
       let nationwideSchoolHoliday = false;
       const infos = {};
@@ -340,7 +340,7 @@ function calculateDayStatistics(fromDate, toDate) {
           regions(r).map(s => s.code.split("-").slice(0, 2).join("-")).forEach(region => {
             if (population[region]) {
               infos[label].Regions.add(region);
-              holidayRegions.add(region)
+              regionsOnHoliday.add(region)
             } else {
               missingRegions.add(region)
             }
@@ -351,24 +351,28 @@ function calculateDayStatistics(fromDate, toDate) {
       }
 
       const countryPopTotal = Object.values(population).reduce((a, b) => a + b, 0);
-      const holidayPopulation = (nationwideHoliday || nationwideSchoolHoliday) ? countryPopTotal : [...holidayRegions].map(c => population[c]).reduce((a, b) => a + b, 0);
+      const holidayPopulation = (nationwideHoliday || nationwideSchoolHoliday) ? countryPopTotal : [...regionsOnHoliday].map(c => population[c]).reduce((a, b) => a + b, 0);
       holidayPopulationTotal += holidayPopulation;
       nationwideHolidayAnyCountry |= nationwideHoliday;
 
 
       // Check for incomplete data
-      if (holidays.length === 0 || schoolHolidays.length === 0 || maxDate(schoolHolidays.map(f => f.endDate)) < d) {
-        incompleteData.add(countryName);
-        incompleteDataPopulation += countryPopTotal;
-      } else {
-        // Also check if school holidays are missing completely for any region
-        let missing = Object.keys(regions(populationData.countries[country])).filter(region => {
-          const regionHolidays = schoolHolidays.filter(h => h.nationwide || regions(h)?.map(s => s.code.split("-").slice(0, 2).join("-")).includes(region));
-          return regionHolidays.length === 0 || maxDate(regionHolidays.map(f => f.endDate)) < d;
-        });
-        if (missing.length > 0) {
-          incompleteData.add(countryName + " (" + missing.map(r => regionNames[r]).join(", ") + ")")
-          incompleteDataPopulation += missing.map(r => population[r]).reduce((a, b) => a + b, 0);
+      if (!nationwideHoliday && !nationwideSchoolHoliday) {
+        if (holidays.length === 0 || schoolHolidays.length === 0 || maxDate(schoolHolidays.map(f => f.endDate)) < d) {
+          incompleteData.add(countryName);
+          incompleteDataPopulation += countryPopTotal;
+        } else {
+          // Also check if school holidays are missing completely for any region
+          let missing = Object.keys(regions(populationData.countries[country])).filter(region => {
+            if (regionsOnHoliday.has(region)) return false;
+            const regionalSchoolHolidays = schoolHolidays.filter(h => h.nationwide || regions(h)?.map(
+              s => s.code.split("-").slice(0, 2).join("-")).includes(region));
+            return regionalSchoolHolidays.length === 0 || maxDate(regionalSchoolHolidays.map(f => f.endDate)) < d;
+          });
+          if (missing.length > 0) {
+            incompleteData.add(countryName + " (" + missing.map(r => regionNames[r]).join(", ") + ")")
+            incompleteDataPopulation += missing.map(r => population[r]).reduce((a, b) => a + b, 0);
+          }
         }
       }
 
