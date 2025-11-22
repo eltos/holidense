@@ -3,16 +3,8 @@
 // ============================================================
 
 // ------------------------------------------------------------
-// Länderdefinitionen (Flaggen + Namen + ISO-Codes)
-const countries = [
-  {code: "DE", name: "Deutschland"},
-  {code: "AT", name: "Österreich"},
-  {code: "CH", name: "Schweiz"},
-  {code: "FR", name: "Frankreich"},
-  {code: "BE", name: "Belgien"},
-  {code: "NL", name: "Niederlande"},
-  {code: "CZ", name: "Tschechien"}
-];
+// Länderdefinitionen
+const countries = ["DE", "AT", "CH", "FR", "BE", "NL", "CZ"];
 
 
 // ------------------------------------------------------------
@@ -38,7 +30,7 @@ let i18n = {
 const url = new URL(location)
 let selectedMonthRange = url.searchParams.get("range");
 let selectedCountries = url.searchParams.get("countries")?.split("|") || ["DE"];
-selectedCountries = [...new Set(selectedCountries).intersection(new Set(countries.map(c => c.code)))];
+selectedCountries = [...new Set(selectedCountries).intersection(new Set(countries))];
 let locale = url.searchParams.get("lang") || "de";
 
 
@@ -94,7 +86,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   links = [sourceLink("https://www.openholidaysapi.org", "OpenHolidays API")]
-  Object.values(populationData.countries).forEach(c => {
+  Object.values(populationData).forEach(c => {
     if (c.source) {
       links.push(", ");
       links.push(sourceLink(c.url, c.source));
@@ -200,22 +192,22 @@ function populateYearSelect() {
  */
 function renderCountrySelection() {
   countryList.innerHTML = "";
-  countries.forEach((c) => {
-    const flag = c.code.toUpperCase().replace(/./g,
+  countries.forEach((code) => {
+    const flag = code.toUpperCase().replace(/./g,
         char => String.fromCodePoint(127397 + char.charCodeAt()));
     const div = document.createElement("div");
     div.className = "country-item";
-    if (selectedCountries.includes(c.code)) {
+    if (selectedCountries.includes(code)) {
       div.className += " active";
     }
-    div.dataset.code = c.code;
-    div.innerHTML = `<span>${flag}</span> <span>${c.name}</span>`;
+    div.dataset.code = code;
+    div.innerHTML = `<span>${flag}</span> <span>${countryName(code)}</span>`;
     div.addEventListener("click", async () => {
-      if (selectedCountries.includes(c.code)) {
-        selectedCountries = selectedCountries.filter((x) => x !== c.code);
+      if (selectedCountries.includes(code)) {
+        selectedCountries = selectedCountries.filter((x) => x !== code);
         div.classList.remove("active");
       } else {
-        selectedCountries.push(c.code);
+        selectedCountries.push(code);
         div.classList.add("active");
       }
       await updateCalendar();
@@ -237,7 +229,7 @@ async function fetchPopulationData() {
   populationData = await res.json();
 
   for (let element of document.getElementsByClassName("country-item")) {
-    const population = Object.values(regions(populationData.countries[element.dataset.code])).reduce((a, b) => a + b, 0);
+    const population = Object.values(regions(populationData[element.dataset.code])).reduce((a, b) => a + b, 0);
     registerTooptip(element, `<span class="tooltip-title">${formatPopulation(population)}</span>\n`);
   }
 
@@ -362,7 +354,7 @@ function calculateDayStatistics(fromDate, toDate) {
   stats = {};
   const missingRegions = new Set();
   const totalPop = selectedCountries.reduce((sum, c) => {
-    const subs = regions(populationData.countries[c]);
+    const subs = regions(populationData[c]);
     return sum + Object.values(subs).reduce((a, b) => a + b, 0);
   }, 0);
 
@@ -382,7 +374,6 @@ function calculateDayStatistics(fromDate, toDate) {
 
     for (const country of selectedCountries) {
       const {holidays, schoolHolidays} = cachedData[d.getFullYear()][country];
-      const countryName = countries.find(c => c.code === country)?.name;
       const regionNames = cachedData.Regions[country].reduce((d, e) => (d[e.code] = e.name?.[0]?.text, d), {});
       const relevant = [];
 
@@ -400,7 +391,7 @@ function calculateDayStatistics(fromDate, toDate) {
       }
 
       // Count population on holiday
-      const population = regions(populationData.countries[country]);
+      const population = regions(populationData[country]);
       let regionsOnHoliday = new Set();
       let nationwideHoliday = false;
       let nationwideSchoolHoliday = false;
@@ -443,18 +434,18 @@ function calculateDayStatistics(fromDate, toDate) {
       // Check for incomplete data
       if (!nationwideHoliday && !nationwideSchoolHoliday) {
         if (holidays.length === 0 || schoolHolidays.length === 0 || maxDate(schoolHolidays.map(f => f.endDate)) < d) {
-          incompleteData.add(countryName);
+          incompleteData.add(countryName(country));
           incompleteDataPopulation += countryPopTotal;
         } else {
           // Also check if school holidays are missing completely for any region
-          let missing = Object.keys(regions(populationData.countries[country])).filter(region => {
+          let missing = Object.keys(regions(populationData[country])).filter(region => {
             if (regionsOnHoliday.has(region)) return false;
             const regionalSchoolHolidays = schoolHolidays.filter(h => h.nationwide || regions(h)?.map(
               s => s.code.split("-").slice(0, 2).join("-")).includes(region));
             return regionalSchoolHolidays.length === 0 || maxDate(regionalSchoolHolidays.map(f => f.endDate)) < d;
           });
           if (missing.length > 0) {
-            incompleteData.add(countryName + " (" + missing.map(r => regionNames[r]).join(", ") + ")")
+            incompleteData.add(countryName(country) + " (" + missing.map(r => regionNames[r]).join(", ") + ")")
             incompleteDataPopulation += missing.map(r => population[r]).reduce((a, b) => a + b, 0);
           }
         }
@@ -462,9 +453,8 @@ function calculateDayStatistics(fromDate, toDate) {
 
       // infos for tooltip
       if (holidayPopulation > 0) {
-        const c = countries.find(c => c.code === country);
         if (selectedCountries.length > 1) {
-          tooltip.push(`\n<span class="tooltip-country">${c.name}: ${formatPopulation(holidayPopulation, countryPopTotal)}</span>`);
+          tooltip.push(`\n<span class="tooltip-country">${countryName(country)}: ${formatPopulation(holidayPopulation, countryPopTotal)}</span>`);
         }
         for (const [label, info] of Object.entries(infos)) {
           if (info.All || info.Regions.size > 0) {
@@ -709,6 +699,17 @@ function densityColor(factor) {
 
 }
 
+
+/**
+ * Retrieves the display name of a country based on its ISO 3166-1 alpha-2 code.
+ *
+ * @param {string} code - The ISO 3166-1 alpha-2 country code (e.g., "US" for the United States).
+ * @return {string} The localized display name of the country corresponding to the provided code.
+ */
+function countryName(code) {
+  return new Intl.DisplayNames([locale], {type: "region"}).of(code);
+}
+
 /**
  * Asynchronously initializes internationalization settings for the application.
  *
@@ -728,7 +729,6 @@ async function i18ninit() {
   locale = (locale || navigator.language?.split("-")[0]).toLowerCase()
   if (locale !== "de") locale = "en";
   document.getElementsByTagName("html")[0].lang = locale;
-  countries.forEach(c => c.name = new Intl.DisplayNames([locale], {type: "region"}).of(c.code))
   if (locale !== "de") {
     const res = await fetch(`i18n/${locale}.json`);
     if (!res.ok) throw new Error("Error loading localization data");
