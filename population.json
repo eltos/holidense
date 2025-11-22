@@ -145,5 +145,29 @@
     "groups": {
       "*": 672050
     }
+  },
+  "PL": {
+    "name": "Polen",
+    "source": "Eurostat",
+    "url": "https://ec.europa.eu/eurostat/databrowser/view/demo_r_gind3/default/table?lang=de&category=demo.demo_ind",
+    "date": "2024-01-01",
+    "subdivisions": {
+      "PL-MA": 3318985,
+      "PL-SK": 4217521,
+      "PL-WP": 3438504,
+      "PL-ZP": 1579753,
+      "PL-LU": 947784,
+      "PL-DS": 2805463,
+      "PL-OP": 890392,
+      "PL-KP": 1931648,
+      "PL-WN": 1294712,
+      "PL-PM": 2296972,
+      "PL-LD": 2327239,
+      "PL-SL": 1123153,
+      "PL-LB": 1934465,
+      "PL-PD": 1955368,
+      "PL-PK": 1078971,
+      "PL-MZ": 5480040
+    }
   }
 }
