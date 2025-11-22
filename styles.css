@@ -133,6 +133,17 @@ a:hover {
   background-color: LightCoral;
 }
 
+#infobar {
+  margin: 1rem;
+  padding: 1rem;
+  display: none;
+  position: absolute;
+  border-radius: 1rem;
+  background-color: #7fb6ff;
+}
+
+
+
 #calendar {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -245,6 +256,10 @@ footer {
 
   #errorbar {
     background: DarkRed;
+  }
+
+  #infobar {
+    background: #003060;
   }
 
   #controls, #countrySelect {

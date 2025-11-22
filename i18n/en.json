@@ -10,6 +10,7 @@
   "mioResidents": "M people",
   "incompleteData": "Incomplete data",
   "dataSources": "Data sources",
+  "loadingData": "Loading data...",
   "share": "Share link",
   "shareInfo": "Persistent link",
   "copiedToClipboard": "was copied to the clipboard"

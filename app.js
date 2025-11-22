@@ -21,6 +21,7 @@ let i18n = {
   mioResidents: "Mio. Einwohner",
   incompleteData: "Unvollständige Datenbasis",
   dataSources: "Datenquellen",
+  loadingData: "Daten werden geladen...",
   share: "Link teilen",
   shareInfo: "Persistenter Link",
   copiedToClipboard: "wurde in die Zwischenablage kopiert"
@@ -36,6 +37,7 @@ let locale = url.searchParams.get("lang") || "de";
 
 const calendarContainer = document.getElementById("calendar");
 const errorBar = document.getElementById("errorbar");
+const infobar = document.getElementById("infobar");
 const sourceInfo = document.getElementById("sourceInfo");
 const yearSelect = document.getElementById("yearSelect");
 const countryList = document.getElementById("countryList");
@@ -317,6 +319,10 @@ async function updateCalendar() {
         if (!cachedData[year] || !cachedData[year][country]) fetch.push(fetchCountryData(year, country));
       }
     }
+    if (fetch.length > 0){
+      infobar.innerHTML = i18n.loadingData;
+      infobar.style.display = "block";
+    }
     await Promise.all(fetch);
 
     // Daten aggregieren
@@ -324,10 +330,12 @@ async function updateCalendar() {
     renderCalendar(stats);
 
   } catch (e) {
+    infobar.style.display = "none";
     errorBar.innerHTML = "Error: " + e.message + `<br/><a href=".">Reload page</a>`;
     errorBar.style.display = "block";
     throw e
   }
+  infobar.style.display = "none";
   errorBar.style.display = "none";
 
 }
