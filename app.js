@@ -88,11 +88,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   links = [sourceLink("https://www.openholidaysapi.org", "OpenHolidays API")]
+  let duplicates = new Set();
   Object.values(populationData).forEach(c => {
-    if (c.source) {
-      links.push(", ");
-      links.push(sourceLink(c.url, c.source));
-    }
+    if (c.source && c.url && !duplicates.has(c.url)) links.push(", ", sourceLink(c.url, c.source));
+    duplicates.add(c.url);
   });
   links.forEach(l => sourceInfo.append(l));
 
