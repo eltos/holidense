@@ -5,13 +5,13 @@
 // ------------------------------------------------------------
 // Länderdefinitionen (Flaggen + Namen + ISO-Codes)
 const countries = [
-  {code: "DE", name: "Deutschland", flag: "🇩🇪"},
-  {code: "AT", name: "Österreich", flag: "🇦🇹"},
-  {code: "CH", name: "Schweiz", flag: "🇨🇭"},
-  {code: "FR", name: "Frankreich", flag: "🇫🇷"},
-  {code: "BE", name: "Belgien", flag: "🇧🇪"},
-  {code: "NL", name: "Niederlande", flag: "🇳🇱"},
-  {code: "CZ", name: "Tschechien", flag: "🇨🇿"}
+  {code: "DE", name: "Deutschland"},
+  {code: "AT", name: "Österreich"},
+  {code: "CH", name: "Schweiz"},
+  {code: "FR", name: "Frankreich"},
+  {code: "BE", name: "Belgien"},
+  {code: "NL", name: "Niederlande"},
+  {code: "CZ", name: "Tschechien"}
 ];
 
 
@@ -201,13 +201,15 @@ function populateYearSelect() {
 function renderCountrySelection() {
   countryList.innerHTML = "";
   countries.forEach((c) => {
+    const flag = c.code.toUpperCase().replace(/./g,
+        char => String.fromCodePoint(127397 + char.charCodeAt()));
     const div = document.createElement("div");
     div.className = "country-item";
     if (selectedCountries.includes(c.code)) {
       div.className += " active";
     }
     div.dataset.code = c.code;
-    div.innerHTML = `<span>${c.flag}</span> <span>${c.name}</span>`;
+    div.innerHTML = `<span>${flag}</span> <span>${c.name}</span>`;
     div.addEventListener("click", async () => {
       if (selectedCountries.includes(c.code)) {
         selectedCountries = selectedCountries.filter((x) => x !== c.code);
