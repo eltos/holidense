@@ -107,6 +107,14 @@ const tooltipElement = document.createElement("div");
 tooltipElement.className = "tooltip";
 document.body.appendChild(tooltipElement);
 
+/**
+ * Displays a tooltip at the mouse position, adjusting its size and position
+ * based on the viewport dimensions.
+ *
+ * @param {MouseEvent} e - The event object containing the mouse coordinates.
+ * @param {string} tooltip - The HTML content to display inside the tooltip.
+ * @return {void}
+ */
 function showTooltip(e, tooltip) {
   tooltipElement.innerHTML = tooltip;
 
@@ -135,6 +143,13 @@ function showTooltip(e, tooltip) {
   tooltipElement.style.opacity = 0.95;
 }
 
+/**
+ * Registers event listeners on the specified element to show and hide a tooltip.
+ *
+ * @param {HTMLElement} element - The target element to attach listeners to.
+ * @param {HTMLElement} tooltip - The tooltip element to be displayed.
+ * @return {void}
+ */
 function registerTooptip(element, tooltip) {
   element.addEventListener("pointerover", e => showTooltip(e, tooltip));
   element.addEventListener("pointerdown", e => showTooltip(e, tooltip));
@@ -143,8 +158,17 @@ function registerTooptip(element, tooltip) {
 }
 
 
-// ------------------------------------------------------------
-// Dropdown für Jahr/Zeitraum vorbereiten
+/**
+ * Populates the year selection dropdown with options for the current year and adjacent years.
+ * For each year, two options are added: a calendar range (January to December) and
+ * a fiscal range (July to June of the following year).
+ *
+ * The function also sets the default selected range based on the current month,
+ * updates the internal `selectedMonthRange` variable, and attaches a change event listener
+ * that triggers a calendar update.
+ *
+ * @return {void}
+ */
 function populateYearSelect() {
   const now = new Date();
   const currentYear = now.getFullYear();
@@ -167,8 +191,13 @@ function populateYearSelect() {
   });
 }
 
-// ------------------------------------------------------------
-// Länder-Auswahl rendern
+/**
+ * Render the list of available countries as selectable items, applying the
+ * appropriate active state based on the current selection and attaching click
+ * handlers that toggle selection and trigger a calendar update.
+ *
+ * @return {void}
+ */
 function renderCountrySelection() {
   countryList.innerHTML = "";
   countries.forEach((c) => {
@@ -193,6 +222,13 @@ function renderCountrySelection() {
   });
 }
 
+/**
+ * Loads population data from `population.json`, computes the population for each country,
+ * and registers a tooltip on every "country-item" that displays the population.
+ *
+ * @return {Promise<void>} A promise that resolves once all tooltips are registered,
+ *   or rejects if the data fetch fails.
+ */
 async function fetchPopulationData() {
   const res = await fetch("population.json");
   if (!res.ok) throw new Error("Error loading population data");
@@ -205,8 +241,16 @@ async function fetchPopulationData() {
 
 }
 
-// ------------------------------------------------------------
-// Hole Ferien- und Feiertagsdaten aus der API
+/**
+ * Retrieves public and school holiday data for a specific year and country, and caches the results.
+ *
+ * @param {number|string} year - The year (e.g., 2024) for which to fetch holiday data. It is interpolated into a date range string.
+ * @param {string} countryCode - The ISO 3166-1 alpha-2 country code used to query the API endpoints.
+ *
+ * @returns {Promise<void>} A promise that resolves once the data has been successfully fetched and stored in `cachedData`.
+ *
+ * @throws {Error} If any of the API requests fail (non‑OK status). The error message includes the problematic country code and year.
+ */
 async function fetchCountryData(year, countryCode) {
   const requests = [
     fetch(`${API_BASE}/PublicHolidays?countryIsoCode=${countryCode}&validFrom=${year}-01-01&validTo=${year}-12-31&languageIsoCode=${locale.toUpperCase()}`),
@@ -223,6 +267,20 @@ async function fetchCountryData(year, countryCode) {
 
 }
 
+/**
+ * Fetches and caches the subdivision and group data for a given country.
+ *
+ * This function performs two parallel HTTP requests: one for the country's
+ * subdivisions and another for its groups. The responses are combined and
+ * stored in the `cachedData.Regions` map keyed by the provided country code.
+ *
+ * @param {string} countryCode - The ISO 3166-1 alpha-2 code of the country to fetch.
+ * @returns {Promise<void>} A promise that resolves when the data has been
+ *   successfully cached. It does not return any value.
+ * @throws {Error} If either of the fetch operations fails or returns a non-OK
+ *   status, an error is thrown indicating the failure to load region data
+ *   for the specified country code.
+ */
 async function fetchRegionData(countryCode) {
   const requests = [
     fetch(`${API_BASE}/Subdivisions?countryIsoCode=${countryCode}&languageIsoCode=${locale.toUpperCase()}`),
@@ -238,8 +296,16 @@ async function fetchRegionData(countryCode) {
 }
 
 
-// ------------------------------------------------------------
-// Aktualisiere Kalender
+/**
+ * Updates the calendar view by validating the selected date range,
+ * fetching any missing population, region, and country data,
+ * aggregating day‑level statistics, and rendering the calendar.
+ * In case of an error the error bar is shown and the error is
+ * re‑thrown.
+ *
+ * @return {Promise<void>} Resolves when the calendar has been
+ *         successfully updated; rejects if an error occurs.
+ */
 async function updateCalendar() {
   try {
     const [fromStr, toStr] = selectedMonthRange.split("~");
@@ -274,6 +340,22 @@ async function updateCalendar() {
 
 // ------------------------------------------------------------
 // Berechne Feriendichte je Tag
+/**
+ * Calculates daily holiday statistics for the selected countries within the specified date range.
+ *
+ * The function adjusts the supplied dates to cover whole months, iterates over each day, and
+ * aggregates holiday information per country, region, and type. It returns an object
+ * indexed by month and day keys. Each day entry contains:
+ * - `share`: the proportion of the total population that is on leave that day.
+ * - `off`: a boolean indicating whether the day is a public holiday (including Sunday).
+ * - `tooltip`: an HTML string with details about the holidays and affected regions.
+ * - `incompleteData`: a boolean that is true when the proportion of missing data
+ *   exceeds 5% of the total population.
+ *
+ * @param {Date} fromDate The start date of the period (will be set to the first day of its month).
+ * @param {Date} toDate The end date of the period (will be set to the last day of its month).
+ * @return {Object} An object containing the calculated statistics, structured by month and day.
+ */
 function calculateDayStatistics(fromDate, toDate) {
   stats = {};
   const missingRegions = new Set();
@@ -422,6 +504,28 @@ function calculateDayStatistics(fromDate, toDate) {
 
 // ------------------------------------------------------------
 // Kalenderdarstellung
+/**
+ * Renders a calendar view based on the supplied statistics data.
+ *
+ * For each month key in the `stats` object, the function creates a month section,
+ * builds a table with day cells, and applies visual styling and tooltips based
+ * on the daily statistics. Empty cells are added for days before the first day
+ * of the month to align the calendar correctly. Incomplete data cells are
+ * displayed with a repeating diagonal pattern and reduced opacity.
+ *
+ * @param {Object<string, Object<string, {share?: number, incompleteData?: boolean, off?: boolean, tooltip?: string}>>} stats
+ *   An object where keys are month identifiers (ISO date strings like
+ *   `"2024-01"`). Each month key maps to another object whose keys are
+ *   day identifiers (e.g., `"2024-01-01"`) and values are statistic
+ *   objects. The statistic object may include:
+ *   - `share` (number): a metric used to determine background color.
+ *   - `incompleteData` (boolean): if true, the cell receives a repeating
+ *     diagonal pattern and reduced opacity.
+ *   - `off` (boolean): if true, the cell's text is displayed in bold.
+ *   - `tooltip` (string): text shown in a tooltip when the cell is hovered.
+ *
+ * @return {void}
+ */
 function renderCalendar(stats) {
   calendarContainer.innerHTML = "";
   tooltipElement.style.opacity = 0;
@@ -490,16 +594,39 @@ function renderCalendar(stats) {
 
 }
 
-// ------------------------------------------------------------
+
+/**
+ * Converts a Date object into a key consisting of year‑month and full date strings.
+ *
+ * @param {Date} date - The date to be processed.
+ * @return {Array<string>} An array where the first element is the 'YYYY-MM' portion and the second element is the full 'YYYY-MM-DD' date string.
+ */
 function dateKey(date) {
   const key = new Date(date.getTime() - date.getTimezoneOffset() * 60 * 1000).toISOString().split("T")[0];
   return [key.slice(0, 7), key]
 }
 
+/**
+ * Returns the most recent date from the provided array.
+ *
+ * @param {Array.<string|Date>} dates An array of dates, each of which can be a
+ *        string in a format parseable by the Date constructor or a Date
+ *        object.
+ * @return {Date} The latest date represented by the maximum timestamp in the
+ *         array.
+ */
 function maxDate(dates){
   return new Date(Math.max(...dates.map(s => new Date(s).getTime())));
 }
 
+/**
+ * Merges `subdivisions` and `groups` from the supplied data object.
+ *
+ * @param {Object} data - Object that may contain `subdivisions` and/or `groups`.
+ * @param {Array|Object} [data.subdivisions] - Subdivisions to merge.
+ * @param {Array|Object} [data.groups] - Groups to merge.
+ * @returns {Array|Object} The merged result or the existing property when the other is undefined.
+ */
 function regions(data){
   if (data.subdivisions === undefined) return data.groups
   if (data.groups === undefined) return data.subdivisions
@@ -509,12 +636,42 @@ function regions(data){
   return { ...data.subdivisions, ...data.groups };
 }
 
+/**
+ * Formats a population number into a string representation in millions, optionally including
+ * the percentage of a total population.
+ *
+ * @param {number} number - The population count to format.
+ * @param {number} [total] - The total population against which to calculate the percentage.
+ * @return {string} A formatted string such as "3.4 mioResidents" or "3.4 mioResidents (45%)".
+ */
 function formatPopulation(number, total=undefined){
   let result = `${(number / 1e6).toFixed(1)} ${i18n.mioResidents}`
   if (total !== undefined) result += ` (${(100 * number / total).toFixed(0)}%)`;
   return result;
 }
 
+/**
+ * Checks whether a given date falls within a specified date range.
+ *
+ * The input values for dates can be a `Date` instance, a timestamp, or a string
+ * that can be parsed by the `Date` constructor. The function normalises all
+ * dates to midnight before performing the comparison.
+ *
+ * If `orAdjacentWeekend` is set to `true`, the start and/or end dates are
+ * adjusted to include the weekend days that are adjacent to them:
+ * - If the start date is a Sunday or Monday, the range is expanded back to the
+ *   preceding Friday.
+ * - If the end date is a Friday or Saturday, the range is expanded forward to
+ *   the following Sunday.
+ *
+ * @param {Date|string|number} date - The date to test.
+ * @param {Date|string|number} startDate - The beginning of the range.
+ * @param {Date|string|number} endDate - The end of the range.
+ * @param {boolean} [orAdjacentWeekend=false] - Whether to extend the range
+ *   to include adjacent weekend days.
+ * @return {boolean} `true` if `date` lies within the (possibly extended)
+ *   range, inclusive; otherwise `false`.
+ */
 function inDateRange(date, startDate, endDate, orAdjacentWeekend = false) {
   const start = new Date(startDate);
   const end = new Date(endDate);
@@ -531,6 +688,17 @@ function inDateRange(date, startDate, endDate, orAdjacentWeekend = false) {
   return d >= start && d <= end;
 }
 
+/**
+ * Generates an HSL color string based on a density factor.
+ *
+ * The input `factor` is clamped between 0 and 1. A value of 0 results in a hue of 120° (green),
+ * while a value of 1 yields a hue of 0° (red). Values between 0 and 1 produce a linear
+ * interpolation between these hues. Saturation is fixed at 70%. Lightness is set to 60% in
+ * light mode and 35% in dark mode, as detected via `prefers-color-scheme`.
+ *
+ * @param {number} factor - The density factor, clamped between 0 and 1.
+ * @return {string} An HSL color string in the format `hsl(hue,70%,lightness%)`.
+ */
 function densityColor(factor) {
   const f = Math.min(Math.max(factor, 0), 1);
   //return `color-mix(in hsl shorter hue, #F44336 ${100*f}%, #4CAF50)`;
@@ -539,6 +707,21 @@ function densityColor(factor) {
 
 }
 
+/**
+ * Asynchronously initializes internationalization settings for the application.
+ *
+ * The function determines the user's locale (defaulting to the browser's language
+ * or falling back to English), sets the `<html>` `lang` attribute, updates the
+ * display names of country codes, and, for non‑German locales, loads a JSON
+ * translation file and applies the translations to elements marked with
+ * `data-i18n` attributes.
+ *
+ * If the translation file cannot be fetched, an `Error` is thrown.
+ *
+ * @returns {Promise<void>} A promise that resolves once the i18n setup is
+ * completed. If loading the translation file fails, the promise is rejected
+ * with an error.
+ */
 async function i18ninit() {
   locale = (locale || navigator.language?.split("-")[0]).toLowerCase()
   if (locale !== "de") locale = "en";
