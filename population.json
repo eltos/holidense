@@ -136,5 +136,14 @@
       "CZ-VY": 517647,
       "CZ-ZL": 578998
     }
+  },
+  "LU": {
+    "name": "Luxemburg",
+    "source": "Luxembourg",
+    "url": "https://luxembourg.public.lu/en/society-and-culture/population/demographics.html",
+    "date": "2024-01-01",
+    "groups": {
+      "*": 672050
+    }
   }
 }
