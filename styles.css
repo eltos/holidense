@@ -47,6 +47,7 @@ a:hover {
 @media (min-width: 720px) {
   #controls {
     position: sticky;
+    z-index: 100;
     top: 0;
   }
 }
@@ -197,7 +198,7 @@ td[data-code]:hover {
   opacity: 0;
   transition: opacity 0.2s;
   white-space: pre-line;
-  z-index: 10;
+  z-index: 1000;
 }
 
 .tooltip .tooltip-title {
