@@ -228,8 +228,12 @@ async function fetchPopulationData() {
   if (!res.ok) throw new Error("Error loading population data");
   populationData = await res.json();
 
+  for (let code in populationData) {
+    populationData[code].regions = { ...populationData[code].subdivisions, ...populationData[code].groups };
+  }
+
   for (let element of document.getElementsByClassName("country-item")) {
-    const population = Object.values(regions(populationData[element.dataset.code])).reduce((a, b) => a + b, 0);
+    const population = Object.values(populationData[element.dataset.code].regions).reduce((a, b) => a + b, 0);
     registerTooptip(element, `<span class="tooltip-title">${formatPopulation(population)}</span>\n`);
   }
 
@@ -255,6 +259,26 @@ async function fetchCountryData(year, countryCode) {
     throw new Error(`Error loading data of ${countryCode} for ${year}`);
   }
   const [holidays, schoolHolidays] = await Promise.all(responses.map(r => r.json()));
+
+  function preProcessHoliday(includeAdjacentWeekends = false) {
+    return h => {
+      h.regions = new Set([...h.subdivisions?.map(s => s.code) || [], ...h.groups?.map(g => g.code) || []]
+        .map(code => code.split('-').slice(0, 2).join('-')));
+      h.startDate = new Date(h.startDate);
+      h.endDate = new Date(h.endDate);
+      if (includeAdjacentWeekends) {
+        if (h.startDate.getDay() === 0) h.startDate.setDate(h.startDate.getDate() - 1); // Sunday
+        if (h.startDate.getDay() === 1) h.startDate.setDate(h.startDate.getDate() - 2); // Monday
+        if (h.endDate.getDay() === 5) h.endDate.setDate(h.endDate.getDate() + 2); // Friday
+        if (h.endDate.getDay() === 6) h.endDate.setDate(h.endDate.getDate() + 1); // Saturday
+      }
+      h.startDate.setHours(0, 0, 0, 0);
+      h.endDate.setHours(0, 0, 0, 0);
+    }
+  }
+  holidays.forEach(preProcessHoliday(false));
+  schoolHolidays.forEach(preProcessHoliday(true));
+  console.log(holidays, schoolHolidays)
 
   if (!(year in cachedData)) cachedData[year] = {};
   cachedData[year][countryCode] = {holidays, schoolHolidays};
@@ -360,7 +384,7 @@ function calculateDayStatistics(fromDate, toDate) {
   stats = {};
   const missingRegions = new Set();
   const totalPop = selectedCountries.reduce((sum, c) => {
-    const subs = regions(populationData[c]);
+    const subs = populationData[c].regions;
     return sum + Object.values(subs).reduce((a, b) => a + b, 0);
   }, 0);
 
@@ -385,19 +409,16 @@ function calculateDayStatistics(fromDate, toDate) {
 
       // --- Feiertage ---
       for (const h of holidays) {
-        if (inDateRange(d, h.startDate, h.endDate)) relevant.push({...h, type: i18n.publicHoliday});
+        if (d >= h.startDate && d <= h.endDate) relevant.push({...h, type: i18n.publicHoliday});
       }
 
       // --- Ferien ---
-      for (const f of schoolHolidays) {
-        if (inDateRange(d, f.startDate, f.endDate, true)) relevant.push({
-          ...f,
-          type: i18n.schoolHoliday
-        });
+      for (const h of schoolHolidays) {
+        if (d >= h.startDate && d <= h.endDate) relevant.push({...h, type: i18n.schoolHoliday});
       }
 
       // Count population on holiday
-      const population = regions(populationData[country]);
+      const population = populationData[country].regions;
       let regionsOnHoliday = new Set();
       let nationwideHoliday = false;
       let nationwideSchoolHoliday = false;
@@ -417,8 +438,8 @@ function calculateDayStatistics(fromDate, toDate) {
           }
           infos[label].All = true;
 
-        } else if (regions(r)) {
-          regions(r).map(s => s.code.split("-").slice(0, 2).join("-")).forEach(region => {
+        } else if (r.regions) {
+          r.regions.forEach(region => {
             if (population[region]) {
               infos[label].Regions.add(region);
               regionsOnHoliday.add(region)
@@ -444,10 +465,9 @@ function calculateDayStatistics(fromDate, toDate) {
           incompleteDataPopulation += countryPopTotal;
         } else {
           // Also check if school holidays are missing completely for any region
-          let missing = Object.keys(regions(populationData[country])).filter(region => {
+          let missing = Object.keys(populationData[country].regions).filter(region => {
             if (regionsOnHoliday.has(region)) return false;
-            const regionalSchoolHolidays = schoolHolidays.filter(h => h.nationwide || regions(h)?.map(
-              s => s.code.split("-").slice(0, 2).join("-")).includes(region));
+            const regionalSchoolHolidays = schoolHolidays.filter(h => h.nationwide || h.regions.has(region));
             return regionalSchoolHolidays.length === 0 || maxDate(regionalSchoolHolidays.map(f => f.endDate)) < d;
           });
           if (missing.length > 0) {
@@ -613,26 +633,15 @@ function dateKey(date) {
  * @return {Date} The latest date represented by the maximum timestamp in the
  *         array.
  */
-function maxDate(dates){
-  return new Date(Math.max(...dates.map(s => new Date(s).getTime())));
+function maxDate(dates) {
+  let max = -Infinity;
+  for (let date of dates) {
+    let t = date.getTime();
+    if (t > max) max = t;
+  }
+  return new Date(max);
 }
 
-/**
- * Merges `subdivisions` and `groups` from the supplied data object.
- *
- * @param {Object} data - Object that may contain `subdivisions` and/or `groups`.
- * @param {Array|Object} [data.subdivisions] - Subdivisions to merge.
- * @param {Array|Object} [data.groups] - Groups to merge.
- * @returns {Array|Object} The merged result or the existing property when the other is undefined.
- */
-function regions(data){
-  if (data.subdivisions === undefined) return data.groups
-  if (data.groups === undefined) return data.subdivisions
-  if (Array.isArray(data.subdivisions) && Array.isArray(data.groups)) {
-    return [...data.subdivisions, ...data.groups];
-  }
-  return { ...data.subdivisions, ...data.groups };
-}
 
 /**
  * Formats a population number into a string representation in millions, optionally including
@@ -646,44 +655,6 @@ function formatPopulation(number, total=undefined){
   let result = `${(number / 1e6).toFixed(number > 1e6 ? 1 : 2)} ${i18n.mioResidents}`
   if (total !== undefined) result += ` (${(100 * number / total).toFixed(0)}%)`;
   return result;
-}
-
-/**
- * Checks whether a given date falls within a specified date range.
- *
- * The input values for dates can be a `Date` instance, a timestamp, or a string
- * that can be parsed by the `Date` constructor. The function normalises all
- * dates to midnight before performing the comparison.
- *
- * If `orAdjacentWeekend` is set to `true`, the start and/or end dates are
- * adjusted to include the weekend days that are adjacent to them:
- * - If the start date is a Sunday or Monday, the range is expanded back to the
- *   preceding Friday.
- * - If the end date is a Friday or Saturday, the range is expanded forward to
- *   the following Sunday.
- *
- * @param {Date|string|number} date - The date to test.
- * @param {Date|string|number} startDate - The beginning of the range.
- * @param {Date|string|number} endDate - The end of the range.
- * @param {boolean} [orAdjacentWeekend=false] - Whether to extend the range
- *   to include adjacent weekend days.
- * @return {boolean} `true` if `date` lies within the (possibly extended)
- *   range, inclusive; otherwise `false`.
- */
-function inDateRange(date, startDate, endDate, orAdjacentWeekend = false) {
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-  const d = new Date(date);
-  if (orAdjacentWeekend) {
-    if (start.getDay() === 0) start.setDate(start.getDate() - 1); // Sunday
-    if (start.getDay() === 1) start.setDate(start.getDate() - 2); // Monday
-    if (end.getDay() === 5) end.setDate(end.getDate() + 2); // Friday
-    if (end.getDay() === 6) end.setDate(end.getDate() + 1); // Saturday
-  }
-  start.setHours(0, 0, 0, 0);
-  end.setHours(0, 0, 0, 0);
-  d.setHours(0, 0, 0, 0);
-  return d >= start && d <= end;
 }
 
 /**
