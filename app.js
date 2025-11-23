@@ -4,7 +4,7 @@
 
 // ------------------------------------------------------------
 // Länderdefinitionen
-const countries = ["DE", "AT", "CH", "FR", "LU", "BE", "NL", "CZ", "PL"];
+const countries = ["DE", "AT", "LI", "CH", "IT", "FR", "LU", "BE", "NL", "CZ", "PL", "SK", "HU", "SI", "HR", "ES"];
 
 
 // ------------------------------------------------------------
@@ -644,7 +644,7 @@ function regions(data){
  * @return {string} A formatted string such as "3.4 mioResidents" or "3.4 mioResidents (45%)".
  */
 function formatPopulation(number, total=undefined){
-  let result = `${(number / 1e6).toFixed(1)} ${i18n.mioResidents}`
+  let result = `${(number / 1e6).toFixed(number > 1e6 ? 1 : 2)} ${i18n.mioResidents}`
   if (total !== undefined) result += ` (${(100 * number / total).toFixed(0)}%)`;
   return result;
 }

@@ -40,6 +40,15 @@
       "AT-WI": 2005760
     }
   },
+  "LI": {
+    "name": "Liechtenstein",
+    "source": "Eurostat",
+    "url": "https://ec.europa.eu/eurostat/databrowser/view/demo_r_gind3/default/table",
+    "date": "2024-01-01",
+    "subdivisions": {
+      "*": 40015
+    }
+  },
   "CH": {
     "name": "Schweiz",
     "source": "Eurostat",
@@ -72,6 +81,34 @@
       "CH-NW": 45016,
       "CH-ZG": 132556,
       "CH-TI": 357720
+    }
+  },
+  "IT": {
+    "name": "Italien",
+    "source": "Eurostat",
+    "url": "https://ec.europa.eu/eurostat/databrowser/view/demo_r_gind3/default/table",
+    "date": "2024-01-01",
+    "subdivisions": {
+      "IT-PI": 4251623,
+      "IT-VA": 122877,
+      "IT-LI": 1509140,
+      "IT-LO": 10012054,
+      "IT-AB": 1269571,
+      "IT-MO": 289224,
+      "IT-CM": 5593906,
+      "IT-PU": 3890661,
+      "IT-BA": 533233,
+      "IT-CL": 1838568,
+      "IT-SI": 4797359,
+      "IT-SA": 1570453,
+      "IT-TR": 1082702,
+      "IT-VE": 4852216,
+      "IT-FV": 1194616,
+      "IT-ER": 4451938,
+      "IT-TO": 3660530,
+      "IT-UM": 853068,
+      "IT-MA": 1482746,
+      "IT-LA": 5714745
     }
   },
   "FR": {
@@ -168,6 +205,77 @@
       "PL-PD": 1955368,
       "PL-PK": 1078971,
       "PL-MZ": 5480040
+    }
+  },
+  "SK": {
+    "name": "Slowakei",
+    "source": "Eurostat",
+    "url": "https://ec.europa.eu/eurostat/databrowser/view/demo_r_gind3/default/table",
+    "date": "2024-01-01",
+    "subdivisions": {
+      "SK-BC": 614356,
+      "SK-BL": 732757,
+      "SK-KI": 779073,
+      "SK-NI": 668301,
+      "SK-PV": 808810,
+      "SK-TA": 566114,
+      "SK-TC": 568102,
+      "SK-ZI": 687174
+    }
+  },
+  "HU": {
+    "name": "Ungarn",
+    "source": "Eurostat",
+    "url": "https://ec.europa.eu/eurostat/databrowser/view/demo_r_gind3/default/table",
+    "date": "2024-01-01",
+    "subdivisions": {
+      "*": 9584627
+    }
+  },
+  "SI": {
+    "name": "Slowenien",
+    "source": "Eurostat",
+    "url": "https://ec.europa.eu/eurostat/databrowser/view/demo_r_gind3/default/table",
+    "date": "2024-01-01",
+    "subdivisions": {
+      "SI-VR": 1111686,
+      "SI-ZR": 1012263
+    }
+  },
+  "HR": {
+    "name": "Kroatien",
+    "source": "Eurostat",
+    "url": "https://ec.europa.eu/eurostat/databrowser/view/demo_r_gind3/default/table",
+    "date": "2024-01-01",
+    "subdivisions": {
+      "*": 3861967
+    }
+  },
+  "ES": {
+    "name": "Spanien",
+    "source": "Eurostat",
+    "url": "https://ec.europa.eu/eurostat/databrowser/view/demo_r_gind3/default/table",
+    "date": "2024-01-01",
+    "subdivisions": {
+      "ES-GA": 2705833,
+      "ES-AS": 1009599,
+      "ES-CB": 590851,
+      "ES-PV": 2227684,
+      "ES-NC": 678333,
+      "ES-RI": 324184,
+      "ES-AR": 1351591,
+      "ES-MD": 7009268,
+      "ES-CL": 2391682,
+      "ES-CM": 2104433,
+      "ES-EX": 1054681,
+      "ES-CT": 8012231,
+      "ES-VC": 5319285,
+      "ES-IB": 1231768,
+      "ES-AN": 8631862,
+      "ES-MC": 1568492,
+      "ES-CE": 83179,
+      "ES-ML": 85985,
+      "ES-CN": 2238754
     }
   }
 }

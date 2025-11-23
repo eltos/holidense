@@ -80,6 +80,27 @@ const subdivisionMapping = {
     "DE-SH": "DEF", // Schleswig-Holstein
     "DE-TH": "DEG", // Thüringen
   },
+  ES: {
+    "ES-GA": "ES11", // Galicia / Galicien
+    "ES-AS": "ES12", // Principado de Asturias / Asturien
+    "ES-CB": "ES13", // Cantabria / Kantabrien
+    "ES-PV": "ES21", // País Vasco / Baskenland
+    "ES-NC": "ES22", // Comunidad Foral de Navarra / Navarra
+    "ES-RI": "ES23", // La Rioja / La Rioja
+    "ES-AR": "ES24", // Aragón / Aragonien
+    "ES-MD": "ES30", // Comunidad de Madrid / Region Madrid
+    "ES-CL": "ES41", // Castilla y León / Kastilien und León
+    "ES-CM": "ES42", // Castilla-La Mancha / Kastilien-La Mancha
+    "ES-EX": "ES43", // Extremadura / Extremadura
+    "ES-CT": "ES51", // Cataluña / Katalonien
+    "ES-VC": "ES52", // Comunitat Valenciana / Valencianische Gemeinschaft
+    "ES-IB": "ES53", // Illes Balears / Balearische Inseln
+    "ES-AN": "ES61", // Andalucía / Andalusien
+    "ES-MC": "ES62", // Región de Murcia / Region Murcia
+    "ES-CE": "ES63", // Ciudad de Ceuta / Ceuta
+    "ES-ML": "ES64", // Ciudad de Melilla / Melilla
+    "ES-CN": "ES70", // Canarias / Kanarische Inseln
+  },
   FR: {
     "FR-AR": "FRK", // Auvergne-Rhône-Alpes
     "FR-BF": "FRC", // Bourgogne-Franche-Comté
@@ -94,6 +115,37 @@ const subdivisionMapping = {
     "FR-OC": "FRJ", // Occitanie
     "FR-PL": "FRG", // Pays de la Loire
     "FR-PC": "FRL", // Provence-Alpes-Côte d’Azur
+  },
+  HR: {
+    "*": "HR",
+  },
+  HU: {
+    "*": "HU",
+  },
+  IT: {
+    "IT-PI": "ITC1", // Piemonte / Piemont
+    "IT-VA": "ITC2", // Valle d’Aosta/Vallée d’Aoste / Aostatal
+    "IT-LI": "ITC3", // Liguria / Ligurien
+    "IT-LO": "ITC4", // Lombardia / Lombardei
+    "IT-AB": "ITF1", // Abruzzo / Abruzzen
+    "IT-MO": "ITF2", // Molise / Molise
+    "IT-CM": "ITF3", // Campania / Kampanien
+    "IT-PU": "ITF4", // Puglia / Apulien
+    "IT-BA": "ITF5", // Basilicata / Basilikata
+    "IT-CL": "ITF6", // Calabria / Kalabrien
+    "IT-SI": "ITG1", // Sicilia / Sizilien
+    "IT-SA": "ITG2", // Sardegna / Sardinien
+    "IT-TR": ["ITH1", "ITH2"], // Provincia Autonoma di Bolzano + Trento / Trentino-Südtirol
+    "IT-VE": "ITH3", // Veneto / Venetien
+    "IT-FV": "ITH4", // Friuli-Venezia Giulia / Friaul-Julisch Venetien
+    "IT-ER": "ITH5", // Emilia-Romagna / Emilia-Romagna
+    "IT-TO": "ITI1", // Toscana / Toskana
+    "IT-UM": "ITI2", // Umbria / Umbrien
+    "IT-MA": "ITI3", // Marche / Marken
+    "IT-LA": "ITI4", // Lazio / Latium
+  },
+  LI: {
+    "*": "LI",
   },
   LU: {
     "*": "LU",
@@ -115,7 +167,21 @@ const subdivisionMapping = {
     "PL-PD": "PL82", // Podkarpackie
     "PL-PK": "PL84", // Podlaskie
     "PL-MZ": ["PL91", "PL92"], // Warszawski stołeczny + Mazowiecki regionalny
-  }
+  },
+  SI: {
+    "SI-VR": "SI03", // Vzhodna Slovenija / Östliche Regionen
+    "SI-ZR": "SI04", // Zahodna Slovenija / Westliche Regionen
+  },
+  SK: {
+    "SK-BC": "SK032", // Landesbezirk Banská / Banskobystrický kraj
+    "SK-BL": "SK010", // Landesbezirk Bratislava / Bratislavský kraj
+    "SK-KI": "SK042", // Landesbezirk Košice / Košický kraj
+    "SK-NI": "SK023", // Landesbezirk Nitra / Nitriansky kraj
+    "SK-PV": "SK041", // Landesbezirk Prešov / Prešovský kraj
+    "SK-TA": "SK021", // Landesbezirk Trnava / Trnavský kraj
+    "SK-TC": "SK022", // Landesbezirk Trenčín / Trenčiansky kraj
+    "SK-ZI": "SK031", // Landesbezirk Žilina / Žilinský kraj
+  },
 };
 
 
