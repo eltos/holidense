@@ -83,6 +83,7 @@ a:hover {
 }
 
 #yearSelect {
+  font-family: system-ui, Arial, sans-serif;
   font-size: 1rem;
   border: 1px solid #ccc;
   border-radius: 0.5rem;
@@ -91,6 +92,8 @@ a:hover {
 }
 
 .country-item {
+  font-family: system-ui, Arial, sans-serif;
+  font-size: 1rem;
   display: flex;
   align-items: center;
   gap: 0.4rem;
@@ -99,7 +102,7 @@ a:hover {
   border-radius: 0.5rem;
   background-color: #f0f0f0;
   opacity: 0.7;
-  height: 1.3rem;
+  height: 2.2rem;
   padding: 0.4rem 0.6rem;
   transition: background-color 0.2s, opacity 0.2s;
   user-select: none;
@@ -189,6 +192,7 @@ td[data-code]:hover {
 
 .tooltip {
   position: absolute;
+  overflow: scroll;
   background: #333;
   color: #fff;
   padding: 0.4rem 0.6rem;

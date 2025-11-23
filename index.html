@@ -18,19 +18,25 @@
   </p>
   <div class="option-icons">
     <button class="option-icon" id="languageSelector" title="Toggle language EN/DE &#013;Sprache wechseln DE/EN">🌐</button>
-    <button class="option-icon" id="shareLink">🔗</button>
+    <button class="option-icon" id="shareLink" title="Persistenter Link">🔗</button>
   </div>
 </header>
 
 <div id="countryMap"></div>
 
 <section id="controls">
-  <select id="yearSelect"></select>
+  <select id="yearSelect" aria-label="Jahr Auswahl"><option value="" selected>Jahr auswählen...</option></select>
+  <button class="country-item placeholder">Deutschland</button>
+  <button class="country-item placeholder">Österreich</button>
+  <button class="country-item placeholder">Schweiz</button>
+  <button class="country-item placeholder">Italien</button>
+  <button class="country-item placeholder">Frankreich</button>
+  <button class="country-item placeholder">Belgien</button>
+  <button class="country-item placeholder">Niederlande</button>
 </section>
 
-<section id="errorbar"></section>
-<section id="infobar"></section>
-</section>
+<section id="errorbar" role="alert"></section>
+<section id="infobar" role="alert">Daten werden geladen...</section>
 <main id="calendar">
   Lade Daten...
 </main>

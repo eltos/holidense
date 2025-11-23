@@ -5,3 +5,7 @@ Interaktiver Kalender, der für jeden Tag den Anteil der Bevölkerung angibt, de
 
 | https://eltos.github.io/holidense |
 | --------------------------------- |
+
+The tool uses
+holiday data from [OpenHolidays API](https://github.com/openpotato/openholidaysapi.data)
+and population data from [Eurostat](https://doi.org/10.2908/DEMO_R_GIND3).

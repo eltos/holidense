@@ -129,9 +129,12 @@ function showTooltip(e, tooltip) {
   if (e.pageY + 20 < window.innerHeight - tooltipElement.getBoundingClientRect().height) {
     tooltipElement.style.top = e.pageY + 10 + "px";
     tooltipElement.style.bottom = '';
-  } else {
+  } else if (e.pageY - 20 > tooltipElement.getBoundingClientRect().height) {
     tooltipElement.style.top = '';
     tooltipElement.style.bottom = window.innerHeight - e.pageY + 10 + "px";
+  } else {
+    tooltipElement.style.top = 10 + "px";
+    tooltipElement.style.bottom = '';
   }
   tooltipElement.style.opacity = 0.95;
 }
@@ -165,6 +168,7 @@ function registerTooptip(element, tooltip) {
 function populateYearSelect() {
   const now = new Date();
   const currentYear = now.getFullYear();
+  yearSelect.childNodes.forEach(n => n.remove());
   for (let y = currentYear - 1; y <= currentYear + 2; y++) {
     const optCal = document.createElement("option");
     optCal.value = `${y}-01~${y}-12`;
@@ -192,27 +196,28 @@ function populateYearSelect() {
  * @return {void}
  */
 function renderCountrySelection() {
+  controls.querySelectorAll(".placeholder").forEach(c => c.remove())
   countries.forEach((code) => {
     const flag = code.toUpperCase().replace(/./g,
         char => String.fromCodePoint(127397 + char.charCodeAt()));
-    const div = document.createElement("div");
-    div.className = "country-item";
+    const button = document.createElement("button");
+    button.className = "country-item";
     if (selectedCountries.includes(code)) {
-      div.className += " active";
+      button.className += " active";
     }
-    div.dataset.code = code;
-    div.innerHTML = `<span>${flag}</span> <span>${formatCountryName(code)}</span>`;
-    div.addEventListener("click", async () => {
+    button.dataset.code = code;
+    button.innerHTML = `<span>${flag}</span> <span>${formatCountryName(code)}</span>`;
+    button.addEventListener("click", async () => {
       if (selectedCountries.includes(code)) {
         selectedCountries = selectedCountries.filter((x) => x !== code);
-        div.classList.remove("active");
+        button.classList.remove("active");
       } else {
         selectedCountries.push(code);
-        div.classList.add("active");
+        button.classList.add("active");
       }
       await updateCalendar();
     });
-    controls.appendChild(div);
+    controls.appendChild(button);
   });
 }
 
