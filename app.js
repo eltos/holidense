@@ -40,7 +40,7 @@ const errorBar = document.getElementById("errorbar");
 const infobar = document.getElementById("infobar");
 const sourceInfo = document.getElementById("sourceInfo");
 const yearSelect = document.getElementById("yearSelect");
-const countryList = document.getElementById("countryList");
+const controls = document.getElementById("controls");
 const shareLinkButton = document.getElementById("shareLink");
 shareLinkButton.addEventListener("click", e => {
   const url = new URL(location)
@@ -192,7 +192,6 @@ function populateYearSelect() {
  * @return {void}
  */
 function renderCountrySelection() {
-  countryList.innerHTML = "";
   countries.forEach((code) => {
     const flag = code.toUpperCase().replace(/./g,
         char => String.fromCodePoint(127397 + char.charCodeAt()));
@@ -213,7 +212,7 @@ function renderCountrySelection() {
       }
       await updateCalendar();
     });
-    countryList.appendChild(div);
+    controls.appendChild(div);
   });
 }
 
