@@ -249,8 +249,8 @@ function setupCircleSelection() {
       updateSelectionFromCircle(cx, cy, radius);
       circleOverlay.style.display = "none";
       
-      // Update calendar and hide circle
-      await updateCalendar();
+      // Update calendar (async)
+      updateCalendar();
     }
     
     selectionStart = null;
@@ -409,7 +409,7 @@ function populateYearSelect() {
   yearSelect.value = selectedMonthRange
   yearSelect.addEventListener("change", async e => {
     selectedMonthRange = e.currentTarget.value;
-    await updateCalendar();
+    updateCalendar();
   });
 }
 
@@ -460,7 +460,7 @@ async function toggleCountrySelection(code) {
     selectedCountries.push(code);
   }
   updateCountryUIState(code);
-  await updateCalendar();
+  updateCalendar();
 }
 
 /**
