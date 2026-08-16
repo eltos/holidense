@@ -247,7 +247,7 @@ footer {
 .modal {
   display: none;
   position: fixed;
-  z-index: 100;
+  z-index: 500;
   left: 0;
   top: 0;
   width: 100%;
@@ -283,7 +283,7 @@ footer {
   font-size: 2rem;
   cursor: pointer;
   color: #333;
-  z-index: 2001;
+  z-index: 501;
   padding: 0;
   width: 2.5rem;
   height: 2.5rem;
@@ -297,19 +297,31 @@ footer {
   color: #666;
 }
 
+.modal-help {
+  margin: 0 0 1rem 0;
+  font-size: 0.9rem;
+  color: #666;
+  line-height: 1.4;
+}
+
 .modal-map {
   display: block;
   width: 100%;
   height: auto;
 }
 
-.modal-map svg .country-path {
-  cursor: pointer;
-  fill: #f0f0f0;
+.modal-map svg {
+  fill: none;
   stroke: black;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 1;
+  user-select: none;
+}
+
+.modal-map svg .country-path {
+  cursor: pointer;
+  fill: #f0f0f0;
   opacity: 0.7;
   transition: opacity 0.2s;
 }
@@ -322,6 +334,12 @@ footer {
 .modal-map svg .country-path.active {
   fill: #7fb6ff;
   opacity: 1;
+}
+
+.modal-map svg .selection-circle {
+  fill: rgb(127 182 255 / 0.5);
+  stroke: #3887d9;
+  stroke-width: 2;
 }
 
 .modal-map svg .country-path.active:hover {
@@ -374,7 +392,7 @@ footer {
   }
 
   .country-item.active {
-    background-color: #003c7a;
+    background-color: #0061b9;
     border-color: #4aa3ff;
     color: #ffffff;
   }
@@ -414,12 +432,32 @@ footer {
     color: #fff;
   }
 
+  .modal-help {
+    color: #aaa;
+  }
+
+
+  .modal-map svg {
+    stroke: #e4e6e7;
+  }
+
   .modal-map svg .country-path {
-    fill: #2f3336;
+    fill: #555;
+  }
+
+  .modal-map svg .country-path:hover {
+    opacity: 1;
+    fill: #888;
   }
 
   .modal-map svg .country-path.active {
-    fill: #7fb6ff;
+    fill: #0061b9;
+  }
+
+  .modal-map svg .selection-circle {
+    fill: rgb(0 97 185 / 0.5);
+    stroke: #4aa3ff;
+    stroke-width: 2;
   }
 }
 

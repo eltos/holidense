@@ -27,6 +27,7 @@
 <section id="controls">
   <select id="yearSelect" aria-label="Jahr Auswahl"><option value="" selected>Jahr auswählen...</option></select>
   <button id="mapButton" class="button" data-i18n="map">🗺️ Karte</button>
+  <div></div>
   <button class="country-item placeholder">Deutschland</button>
   <button class="country-item placeholder">Österreich</button>
   <button class="country-item placeholder">Schweiz</button>
@@ -54,6 +55,7 @@
 <div id="mapModal" class="modal">
   <div class="modal-content">
     <button id="closeMapModal" class="modal-close">✕</button>
+    <p class="modal-help" data-i18n="mapHelp">Klicke auf Länder um die Auswahl umzuschalten, oder halte gedrückt und ziehe einen Kreis um Länder im Umkreis auszuwählen.</p>
     <div id="mapContainer" class="modal-map"></div>
   </div>
 </div>

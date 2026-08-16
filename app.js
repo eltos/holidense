@@ -122,12 +122,172 @@ async function injectSVGMap() {
   }
 }
 
+/**
+ * Update selection based on circle parameters.
+ * Finds all countries whose paths are covered >50% by the circle and updates UI.
+ */
+function updateSelectionFromCircle(cx, cy, radius) {
+  const mapContainer = document.getElementById("mapContainer");
+  const svg = mapContainer.querySelector("svg");
+  
+  // Find all countries within the circle
+  const newSelection = [];
+  countries.forEach((code) => {
+    const path = svg.querySelector(`path#${code}`);
+    if (!path) return;
+    
+    if (isPathInCircle(path, cx, cy, radius)) {
+      newSelection.push(code);
+    }
+  });
+  
+  // Update selection
+  selectedCountries = newSelection;
+  
+  // Update UI
+  countries.forEach((code) => {
+    updateCountryUIState(code);
+  });
+}
+
+/**
+ * Set up circle selection mode on the SVG map.
+ * Click and drag to select all countries within a circle.
+ * Clicking once toggles a country selection.
+ */
+function setupCircleSelection() {
+  const mapContainer = document.getElementById("mapContainer");
+  const svg = mapContainer.querySelector("svg");
+  if (!svg) return;
+  
+  let isSelectingWithCircle = false;
+  let selectionStart = null;
+  const MOVE_THRESHOLD = 5; // pixels
+  
+  // Create a circle overlay for visualization
+  const circleOverlay = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+  circleOverlay.classList.add("selection-circle");
+  circleOverlay.setAttribute("pointer-events", "none");
+  circleOverlay.style.display = "none";
+  svg.appendChild(circleOverlay);
+  
+  // Convert viewport coordinates to SVG coordinates using native SVG methods
+  function getSVGCoordinates(e) {
+    const point = svg.createSVGPoint();
+    point.x = e.clientX;
+    point.y = e.clientY;
+    return point.matrixTransform(svg.getScreenCTM().inverse());
+  }
+  
+  // Get viewport coordinates (for threshold check)
+  function getViewportCoordinates(e) {
+    const rect = svg.getBoundingClientRect();
+    return {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    };
+  }
+  
+  svg.addEventListener("mousedown", (e) => {
+    selectionStart = {
+      svg: getSVGCoordinates(e),
+      viewport: getViewportCoordinates(e)
+    };
+    isSelectingWithCircle = false;
+  });
+
+  document.addEventListener("mousemove", (e) => {
+    if (!selectionStart) return;
+    
+    // Check if mouse has moved beyond threshold
+    const currentViewport = getViewportCoordinates(e);
+    const distance = Math.sqrt(
+      Math.pow(currentViewport.x - selectionStart.viewport.x, 2) + 
+      Math.pow(currentViewport.y - selectionStart.viewport.y, 2)
+    );
+    
+    if (distance > MOVE_THRESHOLD && !isSelectingWithCircle) {
+      isSelectingWithCircle = true;
+      // Clear selection when circle mode starts
+      selectedCountries = [];
+      countries.forEach((code) => {
+        updateCountryUIState(code);
+      });
+    }
+    
+    if (!isSelectingWithCircle) return;
+    
+    const currentSVG = getSVGCoordinates(e);
+    
+    // Calculate radius
+    const radius = Math.sqrt(
+      Math.pow(currentSVG.x - selectionStart.svg.x, 2) + 
+      Math.pow(currentSVG.y - selectionStart.svg.y, 2)
+    );
+    
+    // Update circle visualization
+    circleOverlay.setAttribute("cx", selectionStart.svg.x);
+    circleOverlay.setAttribute("cy", selectionStart.svg.y);
+    circleOverlay.setAttribute("r", radius);
+    circleOverlay.style.display = "block";
+
+    // Preview selection
+    updateSelectionFromCircle(selectionStart.svg.x, selectionStart.svg.y, radius);
+  });
+  
+  document.addEventListener("mouseup", async () => {
+    if (!selectionStart) return;
+    
+    // Only apply circle selection if threshold was exceeded
+    if (isSelectingWithCircle) {
+      // Get the final circle properties
+      const cx = parseFloat(circleOverlay.getAttribute("cx"));
+      const cy = parseFloat(circleOverlay.getAttribute("cy"));
+      const radius = parseFloat(circleOverlay.getAttribute("r"));
+      
+      // Update selection and UI
+      updateSelectionFromCircle(cx, cy, radius);
+      circleOverlay.style.display = "none";
+      
+      // Update calendar and hide circle
+      await updateCalendar();
+    }
+    
+    selectionStart = null;
+  });
+}
+
+/**
+ * Check if an SVG path collides with a circle.
+ * Samples multiple points along the path and checks if any are within the circle.
+ */
+function isPathInCircle(path, cx, cy, radius) {
+  try {
+    const length = path.getTotalLength();
+    const samples = Math.max(10, Math.min(100, length / 5));
+    
+    for (let i = 0; i <= samples; i++) {
+      const point = path.getPointAtLength((i / samples) * length);
+      const distance = Math.sqrt(Math.pow(point.x - cx, 2) + Math.pow(point.y - cy, 2));
+      if (distance <= radius) {
+        return true;
+      }
+    }
+  } catch (e) {
+    console.error("Error checking path collision:", e);
+  }
+  return false;
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
 
   await i18ninit();
   
   // Inject SVG map into DOM
   await injectSVGMap();
+  
+  // Setup circle selection after SVG is injected
+  setupCircleSelection();
 
   try {
     populateYearSelect();
