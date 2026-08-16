@@ -644,7 +644,7 @@ function renderCalendar(stats) {
       cell.textContent = date.getDate();
       cell.dataset.code = day;
 
-      if (dayStat) {
+      if (dayStat && isFinite(dayStat.fraction)) {
         const fraction = dayStat.fraction || 0;
         cell.style.background = densityColor(fraction);
         if (dayStat.incomplete) {
