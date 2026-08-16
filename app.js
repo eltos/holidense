@@ -136,7 +136,7 @@ function updateSelectionFromCircle(cx, cy, radius) {
     const path = svg.querySelector(`path#${code}`);
     if (!path) return;
     
-    if (isPathInCircle(path, cx, cy, radius)) {
+    if (isPathCoveredByCircle(path, cx, cy, radius)) {
       newSelection.push(code);
     }
   });
@@ -257,27 +257,28 @@ function setupCircleSelection() {
   });
 }
 
+
 /**
- * Check if an SVG path collides with a circle.
- * Samples multiple points along the path and checks if any are within the circle.
+ * Check if an SVG path intersects at least 30% with a circle.
  */
-function isPathInCircle(path, cx, cy, radius) {
-  try {
-    const length = path.getTotalLength();
-    const samples = Math.max(10, Math.min(100, length / 5));
-    
-    for (let i = 0; i <= samples; i++) {
-      const point = path.getPointAtLength((i / samples) * length);
-      const distance = Math.sqrt(Math.pow(point.x - cx, 2) + Math.pow(point.y - cy, 2));
-      if (distance <= radius) {
-        return true;
-      }
-    }
-  } catch (e) {
-    console.error("Error checking path collision:", e);
+function isPathCoveredByCircle(path, cx, cy, radius) {
+  let paperPath = paperPathCache.get(path);
+  if (!paperPath) {
+    paperPath = paperScope.project.importSVG(path.outerHTML, {insert: false});
+    paperPathCache.set(path, paperPath);
   }
-  return false;
+  const circle = new paperScope.Path.Circle({center: new paperScope.Point(cx, cy), radius: radius, insert: false});
+  const intersection = paperPath.intersect(circle, {insert: false});
+  if (!intersection) {
+    return false;
+  }
+  let coverage = Math.abs(intersection.area / paperPath.area);
+  return coverage > 0.3;
 }
+const paperScope = new paper.PaperScope();
+paperScope.setup(document.createElement("canvas"));
+const paperPathCache = new WeakMap();
+
 
 document.addEventListener("DOMContentLoaded", async () => {
 
