@@ -2,6 +2,7 @@
   "title": "Holidense: Calendar of holiday density",
   "about": "This interactive calendar visualizes how many people in the selected countries are currently off due to school or public holidays. The data is based on the <a href=\"https://openholidaysapi.org\" target=\"_blank\">OpenHolidays API</a>.",
   "madeWithLoveBy": "Made with ♥\uFE0F by",
+  "map": "\uD83D\uDDFA\uFE0F Map",
   "publicHoliday": "Public holiday",
   "schoolHoliday": "School holiday",
   "noHoliday": "No holidays",

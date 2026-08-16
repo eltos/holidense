@@ -70,6 +70,10 @@ const infobar = document.getElementById("infobar");
 const sourceInfo = document.getElementById("sourceInfo");
 const yearSelect = document.getElementById("yearSelect");
 const controls = document.getElementById("controls");
+const mapButton = document.getElementById("mapButton");
+const mapModal = document.getElementById("mapModal");
+const closeMapModal = document.getElementById("closeMapModal");
+
 const shareLinkButton = document.getElementById("shareLink");
 shareLinkButton.addEventListener("click", () => {
   const url = new URL(location)
@@ -82,6 +86,17 @@ shareLinkButton.addEventListener("click", () => {
     window.prompt(i18n.shareInfo + ":", url.toString())
   );
 })
+mapButton.addEventListener("click", () => {
+  mapModal.classList.add("active");
+});
+closeMapModal.addEventListener("click", () => {
+  mapModal.classList.remove("active");
+});
+mapModal.addEventListener("click", (e) => {
+  if (e.target === mapModal) {
+    mapModal.classList.remove("active");
+  }
+});
 document.getElementById("languageSelector").onclick = async () => {
   locale = locale === "de" ? "en" : "de";
   const url = new URL(location)
@@ -230,7 +245,7 @@ function renderCountrySelection() {
     const flag = code.toUpperCase().replace(/./g,
         char => String.fromCodePoint(127397 + char.charCodeAt()));
     const button = document.createElement("button");
-    button.className = "country-item";
+    button.className = "button country-item";
     if (selectedCountries.includes(code)) {
       button.className += " active";
     }
