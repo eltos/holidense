@@ -135,21 +135,29 @@ a:hover {
   opacity: 0.85;
 }
 
-#errorbar {
+.lifted {
   margin: 1rem;
   padding: 1rem;
-  display: none;
-  font-family: monospace;
   border-radius: 1rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+#errorbar {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  font-family: monospace;
   background-color: LightCoral;
 }
 
 #infobar {
-  margin: 1rem;
-  padding: 1rem;
   display: none;
-  position: absolute;
-  border-radius: 1rem;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   background-color: #7fb6ff;
 }
 
@@ -265,13 +273,10 @@ footer {
 
 .modal-content {
   background-color: #ffffff;
-  border-radius: 10px;
   position: relative;
   max-width: 90%;
   max-height: 90%;
-  padding: 1rem;
   overflow: auto;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 .modal-close {

@@ -37,11 +37,15 @@
   <button class="country-item placeholder">Niederlande</button>
 </section>
 
-<section id="errorbar" role="alert"></section>
-<section id="infobar" role="alert">Daten werden geladen...</section>
-<main id="calendar">
-  Lade Daten...
+<main>
+  <div id="calendar">
+    Lade Daten...
+  </div>
+  <div id="infobar" class="lifted">Daten werden geladen...</div>
 </main>
+
+
+<div id="errorbar" class="lifted" role="alert"></div>
 
 <footer>
   <p>
@@ -53,7 +57,7 @@
 </footer>
 
 <div id="mapModal" class="modal">
-  <div class="modal-content">
+  <div class="modal-content lifted">
     <button id="closeMapModal" class="modal-close">✕</button>
     <p class="modal-help" data-i18n="mapHelp">Klicke auf Länder um die Auswahl umzuschalten, oder halte gedrückt und ziehe einen Kreis um Länder im Umkreis auszuwählen.</p>
     <div id="mapContainer" class="modal-map"></div>
