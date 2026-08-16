@@ -627,6 +627,7 @@ async function updateCalendar() {
     if (fetch.length > 0){
       infobar.innerHTML = i18n.loadingData;
       infobar.style.display = "block";
+      calendarContainer.style.opacity = "0.3";
     }
     await Promise.all(fetch);
 
@@ -636,12 +637,14 @@ async function updateCalendar() {
 
   } catch (e) {
     infobar.style.display = "none";
+    calendarContainer.style.opacity = "1";
     errorBar.innerHTML = "Error: " + e.message + `<br/><a href=".">Reload page</a>`;
     errorBar.style.display = "block";
     throw e
   }
   infobar.style.display = "none";
   errorBar.style.display = "none";
+  calendarContainer.style.opacity = "1";
 
 }
 

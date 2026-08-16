@@ -315,7 +315,7 @@ footer {
   height: auto;
 }
 
-.modal-map svg {
+.modal-map svg path {
   fill: none;
   stroke: black;
   stroke-linecap: round;
@@ -327,18 +327,15 @@ footer {
 .modal-map svg .country-path {
   cursor: pointer;
   fill: #f0f0f0;
-  opacity: 0.7;
-  transition: opacity 0.2s;
+  transition: 0.2s;
 }
 
 .modal-map svg .country-path:hover {
-  opacity: 1;
   fill: #ddd;
 }
 
 .modal-map svg .country-path.active {
   fill: #7fb6ff;
-  opacity: 1;
 }
 
 .modal-map svg .selection-circle {
@@ -348,7 +345,7 @@ footer {
 }
 
 .modal-map svg .country-path.active:hover {
-  opacity: 0.85;
+  fill: #5b9dff;
 }
 
 
@@ -394,6 +391,10 @@ footer {
     background-color: #2f3336;
     border-color: #555;
     color: #e4e6e7;
+  }
+
+  .button:hover {
+    background-color: #525252;
   }
 
   .country-item.active {
@@ -442,7 +443,7 @@ footer {
   }
 
 
-  .modal-map svg {
+  .modal-map svg path {
     stroke: #e4e6e7;
   }
 
@@ -451,8 +452,7 @@ footer {
   }
 
   .modal-map svg .country-path:hover {
-    opacity: 1;
-    fill: #888;
+    fill: #666;
   }
 
   .modal-map svg .country-path.active {
@@ -463,6 +463,10 @@ footer {
     fill: rgb(0 97 185 / 0.5);
     stroke: #4aa3ff;
     stroke-width: 2;
+  }
+
+  .modal-map svg .country-path.active:hover {
+    fill: #2171b7;
   }
 }
 
