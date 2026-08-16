@@ -103,12 +103,16 @@ a:hover {
   background-color: #f0f0f0;
   height: 2.2rem;
   padding: 0.4rem 0.6rem;
+  transition: background-color 0.2s, opacity 0.2s;
   user-select: none;
+}
+
+.button:hover {
+  background-color: #ddd;
 }
 
 .country-item {
   opacity: 0.7;
-  transition: background-color 0.2s, opacity 0.2s;
 }
 
 .country-item img {
@@ -123,8 +127,12 @@ a:hover {
 
 .country-item.active {
   opacity: 1;
-  background-color: #e3f2fd;
-  border-color: #2196f3;
+  background-color: #7fb6ff;
+  border-color: #3887d9;
+}
+
+.country-item.active:hover {
+  opacity: 0.85;
 }
 
 #errorbar {
@@ -239,7 +247,7 @@ footer {
 .modal {
   display: none;
   position: fixed;
-  z-index: 2000;
+  z-index: 100;
   left: 0;
   top: 0;
   width: 100%;
@@ -295,6 +303,31 @@ footer {
   height: auto;
 }
 
+.modal-map svg .country-path {
+  cursor: pointer;
+  fill: #f0f0f0;
+  stroke: black;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.modal-map svg .country-path:hover {
+  opacity: 1;
+  fill: #ddd;
+}
+
+.modal-map svg .country-path.active {
+  fill: #7fb6ff;
+  opacity: 1;
+}
+
+.modal-map svg .country-path.active:hover {
+  opacity: 0.85;
+}
+
 
 
 
@@ -334,7 +367,7 @@ footer {
     color: #ffffff;
   }
 
-  .country-item {
+  .button {
     background-color: #2f3336;
     border-color: #555;
     color: #e4e6e7;
@@ -379,6 +412,14 @@ footer {
 
   .modal-close:hover {
     color: #fff;
+  }
+
+  .modal-map svg .country-path {
+    fill: #2f3336;
+  }
+
+  .modal-map svg .country-path.active {
+    fill: #7fb6ff;
   }
 }
 

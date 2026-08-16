@@ -104,9 +104,30 @@ document.getElementById("languageSelector").onclick = async () => {
   location.href = url.toString();
 };
 
+/**
+ * Fetches the SVG map and injects it into the DOM.
+ * This allows the SVG paths to be interactive.
+ *
+ * @return {Promise<void>}
+ */
+async function injectSVGMap() {
+  try {
+    const response = await fetch("map.svg");
+    if (!response.ok) throw new Error("Failed to load map.svg");
+    const svgContent = await response.text();
+    const mapContainer = document.getElementById("mapContainer");
+    mapContainer.innerHTML = svgContent;
+  } catch (e) {
+    console.error("Error loading SVG map:", e);
+  }
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
 
   await i18ninit();
+  
+  // Inject SVG map into DOM
+  await injectSVGMap();
 
   try {
     populateYearSelect();
@@ -244,25 +265,70 @@ function renderCountrySelection() {
   countries.forEach((code) => {
     const flag = code.toUpperCase().replace(/./g,
         char => String.fromCodePoint(127397 + char.charCodeAt()));
+    // Setup Button and SVG path for this country
     const button = document.createElement("button");
-    button.className = "button country-item";
-    if (selectedCountries.includes(code)) {
-      button.className += " active";
-    }
+    const svgPath = document.querySelector(`svg path[id="${code}"]`);
+    button.classList.add("button", "country-item");
+    if (svgPath) svgPath.classList.add("country-path");
     button.dataset.code = code;
     button.innerHTML = `<span>${flag}</span> <span>${formatCountryName(code)}</span>`;
-    button.addEventListener("click", async () => {
+    if (svgPath) svgPath.dataset.label = button.innerHTML;
+
+    // Setup both button and SVG path
+    for (const item of [button, svgPath]) {
       if (selectedCountries.includes(code)) {
-        selectedCountries = selectedCountries.filter((x) => x !== code);
-        button.classList.remove("active");
-      } else {
-        selectedCountries.push(code);
-        button.classList.add("active");
+        item.classList.add("active");
       }
-      await updateCalendar();
-    });
+      item.addEventListener("click", async () => {
+        toggleCountrySelection(code);
+      });
+    }
+    
     controls.appendChild(button);
+
   });
+}
+
+/**
+ * Toggle the selection state of a country and update UI.
+ * @param {string} code - The country code to toggle.
+ */
+async function toggleCountrySelection(code) {
+  if (selectedCountries.includes(code)) {
+    selectedCountries = selectedCountries.filter((x) => x !== code);
+  } else {
+    selectedCountries.push(code);
+  }
+  updateCountryUIState(code);
+  await updateCalendar();
+}
+
+/**
+ * Update the UI state of a country in both button and SVG path.
+ * @param {string} code - The country code.
+ */
+function updateCountryUIState(code) {
+  const isSelected = selectedCountries.includes(code);
+  
+  // Update button
+  const button = document.querySelector(`[data-code="${code}"]`);
+  if (button) {
+    if (isSelected) {
+      button.classList.add("active");
+    } else {
+      button.classList.remove("active");
+    }
+  }
+  
+  // Update SVG path
+  const svgPath = document.querySelector(`svg path[id="${code}"]`);
+  if (svgPath) {
+    if (isSelected) {
+      svgPath.classList.add("active");
+    } else {
+      svgPath.classList.remove("active");
+    }
+  }
 }
 
 /**
@@ -281,11 +347,17 @@ async function fetchPopulationData() {
     populationData[code].regions = { ...populationData[code].subdivisions, ...populationData[code].groups };
   }
 
-  for (let element of document.getElementsByClassName("country-item")) {
-    const population = Object.values(populationData[element.dataset.code].regions).reduce((a, b) => a + b, 0);
-    registerTooptip(element, `<span class="tooltip-title">${formatPopulation(population)}</span>\n`);
+  // Add/update tooltips with population information
+  for (let code of countries) {
+    const population = Object.values(populationData[code].regions).reduce((a, b) => a + b, 0);
+    const button = document.querySelector(`.country-item[data-code="${code}"]`);
+    registerTooptip(button, `<span class="tooltip-title">${formatPopulation(population)}</span>\n`);
+    const svgPath = document.querySelector(`svg path[id="${code}"]`);
+    if (svgPath) registerTooptip(svgPath,
+        `<span class="tooltip-title">${svgPath.dataset.label}</span><br/>` +
+        `<span>${formatPopulation(population)}</span>\n`
+    );
   }
-
 }
 
 /**
