@@ -277,5 +277,115 @@
       "ES-ML": 85985,
       "ES-CN": 2238754
     }
+  },
+  "EE": {
+    "source": "Eurostat",
+    "url": "https://ec.europa.eu/eurostat/databrowser/view/demo_r_gind3/default/table",
+    "date": "2026",
+    "subdivisions": {
+      "*": 1360745
+    }
+  },
+  "LV": {
+    "source": "Eurostat",
+    "url": "https://ec.europa.eu/eurostat/databrowser/view/demo_r_gind3/default/table",
+    "date": "2026",
+    "subdivisions": {
+      "*": 1845096
+    }
+  },
+  "LT": {
+    "source": "Eurostat",
+    "url": "https://ec.europa.eu/eurostat/databrowser/view/demo_r_gind3/default/table",
+    "date": "2026",
+    "subdivisions": {
+      "*": 2887592
+    }
+  },
+  "DK": {
+    "source": "Eurostat",
+    "url": "https://ec.europa.eu/eurostat/databrowser/view/demo_r_gind3/default/table",
+    "date": "2026",
+    "subdivisions": {
+      "*": 6025603
+    }
+  },
+  "NO": {
+    "source": "Eurostat",
+    "url": "https://ec.europa.eu/eurostat/databrowser/view/demo_r_gind3/default/table",
+    "date": "2025",
+    "subdivisions": {
+      "NO-AG": 322188,
+      "NO-AK": 740680,
+      "NO-BU": 271248,
+      "NO-FI":  75042,
+      "NO-IL": 377556,
+      "NO-MR": 272413,
+      "NO-NO": 243582,
+      "NO-OF": 314407,
+      "NO-OS": 724290,
+      "NO-RO": 504496,
+      "NO-TD": 486815,
+      "NO-TE": 177863,
+      "NO-TR": 170479,
+      "NO-VF": 258071,
+      "NO-VL": 655210
+    }
+  },
+  "SE": {
+    "source": "Eurostat",
+    "url": "https://ec.europa.eu/eurostat/databrowser/view/demo_r_gind3/default/table",
+    "date": "2026",
+    "subdivisions": {
+      "*": 10605529
+    }
+  },
+  "FI": {
+    "source": "Eurostat",
+    "url": "https://ec.europa.eu/eurostat/databrowser/view/demo_r_gind3/default/table",
+    "date": "2026",
+    "subdivisions": {
+      "*": 5652881
+    }
+  },
+  "GB": {
+    "source": "Eurostat",
+    "url": "https://ec.europa.eu/eurostat/databrowser/view/demo_r_gind3/default/table",
+    "date": "2026",
+    "subdivisions": {
+      "*": 69554275
+    }
+  },
+  "IE": {
+    "source": "Eurostat",
+    "url": "https://ec.europa.eu/eurostat/databrowser/view/demo_r_gind3/default/table",
+    "date": "2026",
+    "subdivisions": {
+      "*": 5510565
+    }
+  },
+  "RO": {
+    "source": "Eurostat",
+    "url": "https://ec.europa.eu/eurostat/databrowser/view/demo_r_gind3/default/table",
+    "date": "2026",
+    "subdivisions": {
+      "*": 19041322
+    }
+  },
+  "RS":  {
+    "source": "Eurostat",
+    "url": "https://ec.europa.eu/eurostat/databrowser/view/demo_r_gind3/default/table",
+    "date": "2026",
+    "subdivisions": {
+      "*": 6532019
+    }
+  },
+  "BG":  {
+    "source": "Eurostat",
+    "url": "https://ec.europa.eu/eurostat/databrowser/view/demo_r_gind3/default/table",
+    "date": "2026",
+    "subdivisions": {
+      "*": 6423207
+    }
   }
 }
