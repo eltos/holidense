@@ -115,8 +115,11 @@ async function injectSVGMap() {
     const response = await fetch("map.svg");
     if (!response.ok) throw new Error("Failed to load map.svg");
     const svgContent = await response.text();
-    const mapContainer = document.getElementById("mapContainer");
+    const mapContainer = document.querySelector('#mapContainer');
     mapContainer.innerHTML = svgContent;
+    const svg = document.querySelector('#mapContainer svg');
+    const aspect = svg.viewBox.baseVal.width / svg.viewBox.baseVal.height;
+    mapContainer.parentElement.style.setProperty('--map-aspect-ratio', aspect)
   } catch (e) {
     console.error("Error loading SVG map:", e);
   }

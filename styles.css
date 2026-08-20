@@ -253,16 +253,14 @@ footer {
 }
 
 .modal {
-  display: none;
   position: fixed;
+  display: none;
   z-index: 500;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  padding: 1rem;
+  inset: 0;
+  align-items: center;
+  justify-content: center;
   box-sizing: border-box;
+  background-color: rgba(0, 0, 0, 0.5);
 }
 
 .modal.active {
@@ -272,17 +270,23 @@ footer {
 }
 
 .modal-content {
-  background-color: #ffffff;
   position: relative;
-  max-width: 90%;
-  max-height: 90%;
+  max-height: 90vh;
+  max-width: 90vw;
+  margin: 0;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  background-color: #ffffff;
   overflow: auto;
 }
 
 .modal-close {
   position: absolute;
-  top: 1rem;
-  right: 1rem;
+  display: flex;
+  top: 0.5rem;
+  right: 0.7rem;
   background: none;
   border: none;
   font-size: 2rem;
@@ -292,7 +296,6 @@ footer {
   padding: 0;
   width: 2.5rem;
   height: 2.5rem;
-  display: flex;
   align-items: center;
   justify-content: center;
   transition: color 0.2s;
@@ -303,20 +306,31 @@ footer {
 }
 
 .modal-help {
-  margin: 0 0 1rem 0;
+  flex: 0 0 auto;
+  margin: 0 0.1rem 1rem;
   font-size: 0.9rem;
+  height: 1.5rem;
+  max-width: calc(100% - 3rem);
   color: #666;
-  line-height: 1.4;
+  line-height: 1.2;
 }
 
 .modal-map {
+  flex: 0 1 auto;
+  width: 100%;
+  aspect-ratio: var(--map-aspect-ratio);
+  max-height: calc(90vh - 4.5rem);
+}
+
+.modal-map svg {
   display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
 }
 
 .modal-map svg path {
-  fill: none;
+  fill: #cccccc;
+  opacity: 0.5;
   stroke: black;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -326,26 +340,26 @@ footer {
 
 .modal-map svg .country-path {
   cursor: pointer;
-  fill: #f0f0f0;
+  opacity: 1;
   transition: 0.2s;
 }
 
 .modal-map svg .country-path:hover {
-  fill: #ddd;
+  fill: #bbbbbb;
 }
 
 .modal-map svg .country-path.active {
-  fill: #7fb6ff;
+  fill: #65a6ff;
+}
+
+.modal-map svg .country-path.active:hover {
+  fill: #418bfd;
 }
 
 .modal-map svg .selection-circle {
   fill: rgb(127 182 255 / 0.5);
   stroke: #3887d9;
   stroke-width: 2;
-}
-
-.modal-map svg .country-path.active:hover {
-  fill: #5b9dff;
 }
 
 
@@ -444,11 +458,8 @@ footer {
 
 
   .modal-map svg path {
-    stroke: #e4e6e7;
-  }
-
-  .modal-map svg .country-path {
     fill: #555;
+    stroke: #e4e6e7;
   }
 
   .modal-map svg .country-path:hover {
