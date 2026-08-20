@@ -191,7 +191,7 @@ function setupCircleSelection() {
     };
   }
   
-  svg.addEventListener("mousedown", (e) => {
+  svg.addEventListener("pointerdown", (e) => {
     selectionStart = {
       svg: getSVGCoordinates(e),
       viewport: getViewportCoordinates(e)
@@ -199,8 +199,9 @@ function setupCircleSelection() {
     isSelectingWithCircle = false;
   });
 
-  document.addEventListener("mousemove", (e) => {
+  document.addEventListener("pointermove", (e) => {
     if (!selectionStart) return;
+    e.preventDefault();
     
     // Check if mouse has moved beyond threshold
     const currentViewport = getViewportCoordinates(e);
@@ -238,7 +239,7 @@ function setupCircleSelection() {
     updateSelectionFromCircle(selectionStart.svg.x, selectionStart.svg.y, radius);
   });
   
-  document.addEventListener("mouseup", async () => {
+  document.addEventListener("pointerup", async () => {
     if (!selectionStart) return;
     
     // Only apply circle selection if threshold was exceeded

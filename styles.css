@@ -21,6 +21,7 @@ header {
 }
 
 header h1 {
+  width: fit-content;
   margin: 0 0 0.5rem 0;
 }
 
@@ -211,7 +212,7 @@ td[data-code]:hover {
 
 .tooltip {
   position: absolute;
-  overflow: scroll;
+  overflow: auto;
   background: #333;
   color: #fff;
   padding: 0.4rem 0.6rem;
@@ -326,6 +327,7 @@ footer {
   display: block;
   width: 100%;
   height: 100%;
+  touch-action: none;
 }
 
 .modal-map svg path {
