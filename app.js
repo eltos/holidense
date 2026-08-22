@@ -158,12 +158,12 @@ function updateSelectionFromCircle(cx, cy, radius) {
  * Click and drag to select all countries within a circle.
  * Clicking once toggles a country selection.
  */
+let isSelectingWithCircle = false;
 function setupCircleSelection() {
   const mapContainer = document.getElementById("mapContainer");
   const svg = mapContainer.querySelector("svg");
   if (!svg) return;
-  
-  let isSelectingWithCircle = false;
+
   let selectionStart = null;
   const MOVE_THRESHOLD = 5; // pixels
   
@@ -445,6 +445,7 @@ function renderCountrySelection() {
         item.classList.add("active");
       }
       item.addEventListener("click", async () => {
+        if (item === svgPath && isSelectingWithCircle) return;
         toggleCountrySelection(code);
       });
     }
