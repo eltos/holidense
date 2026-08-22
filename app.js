@@ -12,6 +12,7 @@ const countries = [
   "IT",
   "FR",
   "ES",
+  "PT",
   "LU",
   "BE",
   "NL",

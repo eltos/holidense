@@ -278,6 +278,14 @@
       "ES-CN": 2238754
     }
   },
+  "PT": {
+    "source": "Eurostat",
+    "url": "https://ec.europa.eu/eurostat/databrowser/view/demo_r_gind3/default/table",
+    "date": "2026",
+    "subdivisions": {
+      "*": 11424031
+    }
+  },
   "EE": {
     "source": "Eurostat",
     "url": "https://ec.europa.eu/eurostat/databrowser/view/demo_r_gind3/default/table",
